@@ -62,6 +62,27 @@ stream_end:
    .return (0)
 .end
 
+## get characters until end-of-string or a character in the given list is found
+.sub get_upto :method
+   .param string stoppers # tells if we need to stop reading
+   .local string res
+   
+   P0 = getattribute self, 'position'
+   I0 = P0
+   S0 = self
+   I1 = length S0
+   if I0 >= I1 goto end
+loop:
+   S0 = self[I0]
+   I2 = index S0, stoppers
+   unless I2 == -1 goto end # pos won't be incremented
+   res .= S0
+   I0 += 1
+end:
+   setattribute self, 'position', I0
+   .return (res)
+.end
+   
 .namespace [ ]
 
 .sub _skip_line
