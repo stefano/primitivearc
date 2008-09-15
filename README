@@ -1,0 +1,23 @@
+The aim of this project is to write a super-simple compiler for a subset of Arc
+targeting the Parrot virtual machine. 
+
+Roadmap:
+
+* Runtime 
+  * Implement basic datatypes:
+    * t and nil -- done
+    * Cons cells -- done
+    * Symbols -- done
+    * Tagged types -- done
+    * Strings, numbers, functions, hash tables and continuations 
+      are already built-in 
+  * Operations on basic datatypes:
+    * car, cdr, cons, list -- done
+    * symbol table and intern -- done
+    * rep and annotate -- done
+  * Call table
+    * call table infrastructure
+    * dispatch on type of element in function position
+    * defcall
+* Reader
+* Compiler
