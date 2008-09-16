@@ -17,6 +17,23 @@
 
    ## Global read table. Maps characters to functions
    P0 = new 'Hash'
+   P1 = get_hll_global '_read_num'
+   P0["."] = P1
+   P0["-"] = P1
+   P0["0"] = P1
+   P0["1"] = P1
+   P0["2"] = P1
+   P0["3"] = P1
+   P0["4"] = P1
+   P0["5"] = P1
+   P0["6"] = P1
+   P0["7"] = P1
+   P0["8"] = P1
+   P0["9"] = P1
+   P1 = get_hll_global '_read_string'
+   P0["\""] = P1
+   P1 = get_hll_global '_read_list'
+   P0["("] = P1   
    set_hll_global 'read-table*', P0
 
    ## Global escape table
@@ -57,7 +74,7 @@
 .end
 
 ## get next character and advance position
-## return 0 on end-of-string
+## return nil on end-of-string
 .sub get1 :method
    P0 = getattribute self, 'position'
    I0 = P0
@@ -69,7 +86,8 @@
    setattribute self, 'position', P0
    .return (P1)
 stream_end:
-   .return (0)
+   P0 = get_hll_global 'nil'
+   .return (P0)
 .end
 
 ## get characters until end-of-string or a character in the given list is found
@@ -95,6 +113,30 @@ end:
 .end
    
 .namespace [ ]
+
+## main reader function
+## !! doesn't handle EOF yet !!
+.sub _read
+   .param pmc rs
+   .local pmc tbl
+
+   tbl = get_hll_global 'read-table*'
+start:	
+   _skip_separators(rs)
+   S0 = rs.get1()
+   unless S0 == ";" goto keep_going
+   ## handle a comment
+   _skip_line(rs)
+   goto start
+keep_going:
+   rs.back1()
+   P0 = tbl[S0]
+   unless P0 goto default
+   .return P0(rs)
+default:
+   ## if the character isn't present in the read table, read a symbol
+   .return _read_symbol(rs)
+.end
 
 .sub _skip_line
    .param pmc rs
@@ -159,6 +201,7 @@ fail:
 
 ## try to read a number, but if it can't parse it as a number, return a
 ## symbol
+## ?? could _read_num substitute _read_symbol? ?? 
 .sub _read_num
    .param pmc rs
 
