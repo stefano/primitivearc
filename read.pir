@@ -21,6 +21,9 @@
 
    ## Global escape table
    P0 = new 'Hash'
+   P0["n"] = "\n"
+   P0["t"] = "\t"
+   P0["\\"] = "\\"
    set_hll_global 'escape-table*', P0
 
    .return ()
@@ -86,7 +89,8 @@ loop:
    res .= S0
    I0 += 1
 end:
-   setattribute self, 'position', I0
+   P0 = I0
+   setattribute self, 'position', P0
    .return (res)
 .end
    
@@ -97,6 +101,18 @@ end:
 loop:
    S0 = rs.get1()
    unless S0 == "\n" goto loop
+.end
+
+.sub _skip_separators
+   .param pmc rs
+
+loop:	
+   S0 = rs.get1()
+   I0 = index separators, S0
+   unless I0 == -1 goto loop
+   rs.back1() # put back non-separator char
+
+   .return ()
 .end
 
 .sub _read_symbol
@@ -121,14 +137,59 @@ end:
    .return intern(P0)
 .end
 
+## check if a string contains only of a certain set of character
+.sub _str_made_of
+   .param string in
+   .param string allowed
+
+   I0 = 0
+   I1 = length in
+loop:	
+   if I0 >= I1 goto ok
+   S0 = in[I0]
+   I2 = index allowed, S0
+   if I2 == -1 goto fail
+   I0 += 1
+   goto loop
+ok:
+   .return (1)
+fail:
+   .return (0)
+.end
+
+## try to read a number, but if it can't parse it as a number, return a
+## symbol
 .sub _read_num
    .param pmc rs
 
+   ## read it
    S0 = rs.get_upto(specandsep)
-   P0 = new 'Number' # TODO: distinguish integer from floats
-   P0 = S0 # type conversion string -> number
-
+   ## check if it is a float
+   I0 = index S0, "."
+   if I0 == -1 goto try_integer # not dot found
+   ## has it two dots ?
+   I0 += 1
+   I0 = index S0, ".", I0
+   unless I0 == -1 goto mk_symbol # if it has two dots, it's a symbol
+   ## check if it has only digits (except for the dot)
+   I0 = _str_made_of(S0, "0123456789.")
+   unless I0 goto mk_symbol
+   ## now we're sure we've got a float
+   P0 = new 'Number'
+   P0 = S0 # type conversion
    .return (P0)
+try_integer:
+   ## try to parse an int
+   I0 = _str_made_of(S0, "0123456789")
+   unless I0 goto mk_symbol
+   P0 = new 'Integer'
+   P0 = S0
+   .return (P0)
+mk_symbol:
+   P0 = new 'String'
+   P0 = S0
+   .return intern(P0)
+
 .end
    
 .sub _read_string
@@ -138,7 +199,7 @@ end:
    .local pmc esc
 
    escapep = 0
-   get_hll_global 'escape-table*', esc
+   esc = get_hll_global 'escape-table*'
    
    rs.get1() # skip "
 loop:
@@ -146,7 +207,7 @@ loop:
    unless escapep goto end_escape
    escapep = 0
    S0 = esc[S0]
-   unless S0 die "Cannot escape char"
+   unless S0 goto error
 end_escape:
    unless S0 == "\\" goto end_start_escape
    escapep = 1
@@ -157,5 +218,50 @@ end_start_escape:
    goto loop
 end:
    .return (res)
+error:
+   die "Cannot escape char"
+   .return ("")
 .end
 
+## read a list terminating with ter
+## suppose opening bracket already read
+.sub _read_list_with_ter
+   .param pmc rs
+   .param string ter
+  
+   _skip_separators(rs)
+   S0 = rs.get1()
+   if S0 == ter goto end # list terminated
+   rs.back1()
+   P0 = _read(rs) # read the car
+   _skip_separators(rs)
+   S0 = rs.get1()
+   if S0 == "." goto dotted_list # a dotted list ( --- . - )
+   if S0 == ter goto ter_found
+   rs.back1() # start of another element, put back its first char
+   P1 = _read_list_with_ter(rs, ter)
+   .return cons(P0, P1)
+dotted_list:
+   P1 = _read(rs) # read the cdr
+   _skip_separators(rs)
+   S0 = rs.get1()
+   unless S0 == ter goto error # only one object may follow the dot
+   .return cons(P0, P1)
+ter_found:
+   P1 = get_hll_global 'nil'
+   .return cons(P0, P1)
+end:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+error:
+   die "More than one object follows ."
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+   
+.sub _read_list
+   .param pmc rs
+
+   rs.get1() # skip (
+   .return _read_list_with_ter(rs, ")")
+.end
