@@ -175,9 +175,18 @@ loop:
 retain1:
    rs.back1()
 end:
+   ## handle the constants t & nil
+   if result == "t" goto ret_t
+   if result == "nil" goto ret_nil
    P0 = new 'String'
    P0 = result
    .return intern(P0)
+ret_t:
+   P0 = get_hll_global 't'
+   .return (P0)
+ret_nil:
+   P0 = get_hll_global 'nil'
+   .return (P0)
 .end
 
 ## check if a string contains only of a certain set of character
