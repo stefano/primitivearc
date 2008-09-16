@@ -20,4 +20,11 @@ Roadmap:
     * dispatch on type of element in function position
     * defcall
 * Reader
+  * Numbers
+  * Symbols
+  * Strings
+  * Lists and dotted lists
+  * [ ... ] syntax
+  * intrasymbol syntax: '.', '!', ':'
+  * quote, quasiquote and unquote
 * Compiler
