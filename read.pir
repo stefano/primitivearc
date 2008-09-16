@@ -164,6 +164,9 @@ fail:
 
    ## read it
    S0 = rs.get_upto(specandsep)
+   ## check if it has one '-' not at the beginning
+   I0 = index S0, "-", 1
+   unless I0 == -1 goto mk_symbol
    ## check if it is a float
    I0 = index S0, "."
    if I0 == -1 goto try_integer # not dot found
@@ -171,8 +174,8 @@ fail:
    I0 += 1
    I0 = index S0, ".", I0
    unless I0 == -1 goto mk_symbol # if it has two dots, it's a symbol
-   ## check if it has only digits (except for the dot)
-   I0 = _str_made_of(S0, "0123456789.")
+   ## check if it has only digits (except for the dot and minus sign)
+   I0 = _str_made_of(S0, "-0123456789.")
    unless I0 goto mk_symbol
    ## now we're sure we've got a float
    P0 = new 'Number'
@@ -180,7 +183,7 @@ fail:
    .return (P0)
 try_integer:
    ## try to parse an int
-   I0 = _str_made_of(S0, "0123456789")
+   I0 = _str_made_of(S0, "-0123456789")
    unless I0 goto mk_symbol
    P0 = new 'Integer'
    P0 = S0
