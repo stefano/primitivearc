@@ -41,6 +41,7 @@
    P0["n"] = "\n"
    P0["t"] = "\t"
    P0["\\"] = "\\"
+   P0["\""] = "\""
    set_hll_global 'escape-table*', P0
 
    .return ()
@@ -48,19 +49,15 @@
 
 .namespace ['ReadStream']
 
-.sub __new_from_string
-   .param pmc class
+.sub input :method
    .param string str
-   .param int flags
+   
+   self = str # stream contents
+   P0 = new 'Integer'
+   P0 = 0
+   setattribute self, 'position', P0 # start at position 0
 
-   I0 = typeof class
-   P0 = new I0
-   P0 = str # stream contents
-   P1 = new 'Integer'
-   P1 = 0
-   setattribute P0, 'position', P1 # start at position 0
-
-   .return (P0)
+   .return (self)
 .end
 
 
@@ -81,10 +78,10 @@
    S0 = self
    I1 = length S0
    if I0 >= I1 goto stream_end
-   P1 = self[P0]
+   S1 = self[P0]
    P0 += 1
    setattribute self, 'position', P0
-   .return (P1)
+   .return (S1)
 stream_end:
    P0 = get_hll_global 'nil'
    .return (P0)
@@ -94,6 +91,8 @@ stream_end:
 .sub get_upto :method
    .param string stoppers # tells if we need to stop reading
    .local string res
+
+   res = ""
    
    P0 = getattribute self, 'position'
    I0 = P0
@@ -102,10 +101,11 @@ stream_end:
    if I0 >= I1 goto end
 loop:
    S0 = self[I0]
-   I2 = index S0, stoppers
+   I2 = index stoppers, S0
    unless I2 == -1 goto end # pos won't be incremented
    res .= S0
    I0 += 1
+   goto loop
 end:
    P0 = I0
    setattribute self, 'position', P0
@@ -131,7 +131,8 @@ start:
 keep_going:
    rs.back1()
    P0 = tbl[S0]
-   unless P0 goto default
+   I0 = defined P0
+   unless I0 goto default
    .return P0(rs)
 default:
    ## if the character isn't present in the read table, read a symbol
@@ -160,15 +161,15 @@ loop:
 .sub _read_symbol
    .param pmc rs
    .local string result
-   .local string sep
-   .local string spec
 
+   result = ""
+   
 loop:
    S0 = rs.get1()
    I0 = index separators, S0
-   if I0 == -1 goto end
+   unless I0 == -1 goto end
    I0 = index special, S0
-   if I0 == -1 goto retain1 # special character will be needed later
+   unless I0 == -1 goto retain1 # special character will be needed later
    result .= S0
    goto loop
 retain1:
@@ -221,15 +222,17 @@ fail:
    I0 = _str_made_of(S0, "-0123456789.")
    unless I0 goto mk_symbol
    ## now we're sure we've got a float
-   P0 = new 'Number'
-   P0 = S0 # type conversion
+   P0 = new 'Float'
+   N0 = S0 # type conversion
+   P0 = N0
    .return (P0)
 try_integer:
    ## try to parse an int
    I0 = _str_made_of(S0, "-0123456789")
    unless I0 goto mk_symbol
    P0 = new 'Integer'
-   P0 = S0
+   I0 = S0 # type conversion
+   P0 = I0
    .return (P0)
 mk_symbol:
    P0 = new 'String'
@@ -244,6 +247,7 @@ mk_symbol:
    .local int escapep # true when we need to escape a character
    .local pmc esc
 
+   res = ""
    escapep = 0
    esc = get_hll_global 'escape-table*'
    
@@ -254,6 +258,8 @@ loop:
    escapep = 0
    S0 = esc[S0]
    unless S0 goto error
+   res .= S0
+   goto loop
 end_escape:
    unless S0 == "\\" goto end_start_escape
    escapep = 1

@@ -16,21 +16,35 @@
     compreg 'Arc', P0
 
     ## for every file in the command line, compile it
-    .local pmc iter
-    .local pmc compiler
-    iter = new 'Iterator', args
-    S0 = shift iter # skip first arg (the compiler program)
-    compiler = compreg 'Arc'
+#    .local pmc iter
+#    .local pmc compiler
+#    iter = new 'Iterator', args
+#    S0 = shift iter # skip first arg (the compiler program)
+#    compiler = compreg 'Arc'
+#loop:
+#    unless iter goto end 
+#    S0 = shift iter
+#    S0 = file_to_string(S0)
+#    P0 = compiler(S0) # compilation returns a sub representing the program
+#    say 'Running...'
+#    P0() # run the just compiled bytecode
+#    goto loop
+#end:	
+					#    say 'Done'
+    P0 = getstdin
+    P1 = new 'ReadStream'
 loop:
-    unless iter goto end 
-    S0 = shift iter
-    S0 = file_to_string(S0)
-    P0 = compiler(S0) # compilation returns a sub representing the program
-    say 'Running...'
-    P0() # run the just compiled bytecode
+    S0 = readline P0
+    P1.input(S0)
+    P2 = _read(P1)
+    S0 = typeof P2
+    say '---'
+    print 'type: '
+    print S0
+    print ' -> '
+    say P2
+    say '---'
     goto loop
-end:	
-    say 'Done'
 .end
 
 .sub file_to_string
