@@ -33,15 +33,31 @@
 
 .sub __get_string :method
    .local string str
-   .local string el
-   
+      
    str = "("
-   el = self[0]
-   str .= el
+   S0 = self[0]
+   str .= S0
+   P0 = self # P0 holds current cons cell
+   I0 = typeof self # cons type
+   P2 = get_hll_global 'nil'
+cdr_to_str:
+   P1 = P0[1]
+   I3 = issame P1, P2
+   if I3 goto end # check if the list is finished
+   I1 = typeof P0[1] # type of the cdr
+   if I0 == I1 goto to_list # is it another cons?
    str .= " . "
-   el = self[1]
-   str .= el
-   str .= ")"
+   S0 = P0[1]
+   str .= S0 # add the non-cons object and finish
+   goto end
+to_list:
+   str .= " "
+   P0 = P0[1] # advance to next cons cell
+   S0 = P0[0]
+   str .= S0 # add the car
+   goto cdr_to_str
+end:
+   str .= ")"   
 
    .return (str)
 .end
