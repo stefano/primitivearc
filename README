@@ -16,14 +16,14 @@ Roadmap:
     * symbol table and intern -- done
     * rep and annotate -- done
   * Call table
-    * call table infrastructure
+    * call table infrastructure -- started
     * dispatch on type of element in function position
-    * defcall
+    * defcall -- not in Arc standard. Should be added anyway?
 * Reader
-  * Numbers
-  * Symbols
-  * Strings
-  * Lists and dotted lists
+  * Numbers -- done
+  * Symbols -- done
+  * Strings -- done
+  * Lists and dotted lists -- done
   * [ ... ] syntax
   * intrasymbol syntax: '.', '!', ':'
   * quote, quasiquote and unquote

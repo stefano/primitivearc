@@ -5,6 +5,7 @@
 .sub _init :anon :init :load
    load_bytecode 'types.pbc'
    load_bytecode 'symtable.pbc'
+   load_bytecode 'arcall.pbc'
    load_bytecode 'read.pbc'
 .end
 
