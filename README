@@ -28,3 +28,12 @@ Roadmap:
   * intrasymbol syntax: '.', '!', ':'
   * quote, quasiquote and unquote
 * Compiler
+  * quote (complex constants)
+  * if with multiple choices
+  * fn 
+    * basic
+    * optional and destructuring args
+  * ar-call
+  * apply
+  * set
+  * macros
