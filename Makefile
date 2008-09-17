@@ -1,7 +1,7 @@
 # put here the path to your parrot executable
 PARROT=~/parrot/parrot
 
-all: types.pbc symtable.pbc read.pbc arcall.pbc arc.pbc 
+all: types.pbc symtable.pbc read.pbc arcall.pbc compiler.pbc arc.pbc 
 
 types.pbc: types.pir
 	$(PARROT) -o types.pbc types.pir
@@ -14,6 +14,9 @@ read.pbc: read.pir
 
 arcall.pbc: arcall.pir
 	$(PARROT) -o arcall.pbc arcall.pir
+
+compiler.pbc: compiler.pir
+	$(PARROT) -o compiler.pbc compiler.pir
 
 arc.pbc: arc.pir
 	$(PARROT) -o arc.pbc arc.pir
