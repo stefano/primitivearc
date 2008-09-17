@@ -139,7 +139,7 @@ go_on:
 .end
 
 ## emit a sequence of operations
-.sub _emit_seq
+.sub _compile_seq
    .param pmc cs
    .param pmc seq
 
@@ -157,6 +157,9 @@ loop:
    P1 = car(P0) # expression to compile
    _compile_expr(cs, P0)
    P0 = cdr(P0) # advance
+   I0 = issame P0, nil
+   if I0 goto end # only last expression's value won't be ignored
+   cs.'_pop'() # ignore return register of this expression
    goto loop
 end:	
    .return ()
@@ -166,13 +169,17 @@ error:
 .end
 
 ## compiles a function expression
-## (fn (arg1 ... . rest-arg) ...)
+## it must be at the global level
+## ($fn name (arg1 ... . rest-arg) ...)
 .sub _compile_fn
    .param pmc cs
    .param pmc expr
    
-   P0 = getattribute cs, 'code'
-   S0 = P0.'unique'("fn-") # function name
+   P0 = cdr(expr)
+   P0 = car(P0) # cadr: function name
+   S0 = typeof P0
+   unless S0 == 'Symbol' goto not_a_sym_err
+   S0 = P0
    _emit_fn_head(cs, S0, 1) # always anonimous
 
    .local pmc code
@@ -186,7 +193,8 @@ error:
    old_lex = getattribute cs, 'lex'
    new_lex = clone old_lex
    P2 = cdr(expr)
-   P2 = car(expr) # 2nd element (arg. list)
+   P2 = cdr(P2)
+   P2 = car(P2) # 3rd element: arg. list
    nil = get_hll_global 'nil'
    cons_type = find_type 'Cons'
    sym_type = find_type 'Symbol'
@@ -215,12 +223,31 @@ rest_arg:
 end:
    setattribute cs, 'lex', new_lex
    P0 = cdr(expr)
-   P0 = cdr(P0) # cddr (the body)
+   P0 = cdr(P0)
+   P0 = cdr(P0) # cdddr: the body
    cs.'_reset_reg'() # at the start of a function all regs are free
-   _emit_seq(cs, P0)
+   _compile_seq(cs, P0)
    setattribute cs, 'lex', old_lex # restore lexical list
    .return ()
 not_a_sym_err:
    die "Not a symbol!"
+   .return ()
+.end
+
+
+## compile closure creation form
+## ($closure code-name)
+.sub _compile_closure
+   .param pmc cs
+   .param pmc expr
+
+   P0 = cdr(expr)
+   P0 = car(P0) # cadr: code-name
+   S0 = P0
+   .local pmc code
+   code = getattribute cs, 'code'
+   S1 = cs.'_push'()
+   code.'emit'("%0 = get_hll_global '%1'\n", S1, S0) # get the global Sub
+   code.'emit'("%0 = newclosure %0", S1) # create the closure
    .return ()
 .end
