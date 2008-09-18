@@ -116,10 +116,24 @@ end:
    .return (P0)
 .end
 
+.sub scar
+   .param pmc cell
+   .param pmc val
+   cell[0] = val
+   .return (val)
+.end
+
 .sub cdr
    .param pmc cell
    P0 = cell[1]
    .return (P0)
+.end
+
+.sub scdr
+   .param pmc cell
+   .param pmc val
+   cell[1] = val
+   .return (val)
 .end
 
 .sub list

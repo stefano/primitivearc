@@ -39,12 +39,18 @@ loop:
     S0 = readline P0
     P1.input(S0)
     P2 = _read(P1)
-    S0 = typeof P2
+    P3 = _collect_fn(P2)
     say '---'
-    print 'type: '
-    print S0
-    print ' -> '
+    print 'new expression: '
     say P2
+    say 'functions:'
+    P3 = new 'Iterator', P3
+loop1:
+    unless P3 goto end
+    P4 = shift P3
+    say P4
+    goto loop1
+end:	
     say '---'
     goto loop
 .end

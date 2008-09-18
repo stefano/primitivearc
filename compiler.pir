@@ -234,7 +234,6 @@ not_a_sym_err:
    .return ()
 .end
 
-
 ## compile closure creation form
 ## ($closure code-name)
 .sub _compile_closure
@@ -249,5 +248,79 @@ not_a_sym_err:
    S1 = cs.'_push'()
    code.'emit'("%0 = get_hll_global '%1'\n", S1, S0) # get the global Sub
    code.'emit'("%0 = newclosure %0", S1) # create the closure
+   .return ()
+.end
+
+## Traverse an expression. If a (fn ...) form is found, it is
+## substituted (destructively) with a ($closure ...) form. (fn ...) are
+## collected in an array, transformed in ($fn ...) forms and returned
+.sub _collect_fn
+   .param pmc expr
+   .local pmc fns
+   .local pmc name
+   .local pmc body
+   
+   fns = new 'ResizablePMCArray'
+
+   S0 = typeof expr
+   unless S0 == 'Cons' goto end
+   ## consider the first element
+   P0 = car(expr)
+   S0 = typeof P0
+   unless S0 == 'Symbol' goto for_each
+   S0 = P0 # conversion
+   if S0 == "quote" goto end # quoted expressions should be ignored
+   if S0 == "fn" goto found1
+   expr = cdr(expr)
+   goto for_each
+found1:	
+   ## add one function
+   P0 = intern("$fn")
+   P1 = intern("$closure")
+   P2 = cdr(expr)
+   S0 = typeof P2
+   unless S0 == 'Cons' goto malformed_function
+   body = cdr(P2) 
+   name = uniq() # name of fn
+   P3 = cons(name, P2) # (name (arg1 ...) body)
+   P3 = cons(P0, P3) # ($fn name (arg1 ...) body)
+   push fns, P3
+   ## transform into call to ($closure ...)
+   scar(expr, P1)
+   P2 = get_hll_global 'nil'
+   P4 = cons(name, P2) # (name)
+   scdr(expr, P4) # expr = ($closure name)
+   expr = body # set up to continue with for_each
+   ## now call on every element
+for_each:
+   S0 = typeof expr
+   unless S0 == 'Cons' goto end # list finished
+   P0 = car(expr)
+   P1 = _collect_fn(P0) # array of sub-expression
+   I0 = P1 # length of the array
+   if I0 == 0 goto next # no need to extend
+   _extend(fns, P1) # extend fns with sub-expression's fn list
+next:
+   expr = cdr(expr)
+   goto for_each
+end:	
+   .return (fns)
+malformed_function:
+   die "Malformed function!"
+   .return (0)
+.end
+
+## add every element of array b to array a
+.sub _extend
+   .param pmc a
+   .param pmc b
+   
+   P0 = new 'Iterator', b
+loop:
+   unless P0 goto end
+   P1 = shift P0
+   push a, P1
+   goto loop
+end:
    .return ()
 .end
