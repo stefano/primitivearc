@@ -181,7 +181,7 @@ end_args:
    unless anon goto go_on
    S0 = ":anon"
 go_on:	
-   P0.'emit'(".sub %0 %0\n", name, S0)
+   P0.'emit'(".sub %0 %1\n", name, S0)
 
    .return ()
 .end
