@@ -5,9 +5,16 @@
    ## class holding information needed by compilation
    P0 = newclass 'CompilerState'
    addattribute P0, 'code' # CodeString of code emitted so far
-   addattribute P0, 'lex' # list of lexical variables
+   addattribute P0, 'lex' # list of lexical variables (symbols)
    addattribute P0, 'nextreg' # number of next free register to use
 
+   ## function information
+   P0 = newclass 'FnInfo'
+   addattribute P0, 'expr' # s-expr ($fn name (args ...) body)
+   addattribute P0, 'globalp' # is this a global function (not a closure)?
+   addattribute P0, 'lex' # list of lexical variables at definiton time
+   addattribute P0, 'outer' # name of external function
+   
    .return ()
 .end
 
@@ -62,7 +69,7 @@
    P0 = new 'CompilerState'
    P1 = new 'CodeString'
    setattribute P0, 'code', P1
-   P1 = new 'ResizableStringArray'
+   P1 = new 'ResizablePMCArray'
    setattribute P0, 'lex', P1
    P1 = new 'Integer'
    P1 = 0
@@ -167,6 +174,8 @@ args_emitted:
    I0 -= 1
    goto args_emitted
 end_args:
+   code .= out_reg
+   code .= " = "
    code.'emit'("arcall(%,)\n", args :flat)
    .return ()
 .end
@@ -174,14 +183,9 @@ end_args:
 .sub _emit_fn_head
    .param pmc cs
    .param string name
-   .param int anon
    
    P0 = getattribute cs, 'code'
-   S0 = ""
-   unless anon goto go_on
-   S0 = ":anon"
-go_on:	
-   P0.'emit'(".sub %0 %1\n", name, S0)
+   P0.'emit'(".sub %0\n", name)
 
    .return ()
 .end
@@ -195,7 +199,7 @@ go_on:
    .local int cons_type
    nil = get_hll_global 'nil'
    cons_type = find_type 'Cons'
-   
+
    P0 = seq 
 loop:
    I0 = issame seq, nil
@@ -203,7 +207,7 @@ loop:
    I0 = typeof seq
    unless I0 == cons_type goto error # dotted list?
    P1 = car(P0) # expression to compile
-   _compile_expr(cs, P0)
+   _compile_expr(cs, P1)
    P0 = cdr(P0) # advance
    I0 = issame P0, nil
    if I0 goto end # only last expression's value won't be ignored
@@ -228,7 +232,7 @@ error:
    S0 = typeof P0
    unless S0 == 'Symbol' goto not_a_sym_err
    S0 = P0
-   _emit_fn_head(cs, S0, 1) # always anonimous
+   _emit_fn_head(cs, S0)
 
    .local pmc code
    .local pmc new_lex
@@ -276,6 +280,8 @@ end:
    cs.'_reset_reg'() # at the start of a function all regs are free
    _compile_seq(cs, P0)
    setattribute cs, 'lex', old_lex # restore lexical list
+   S0 = cs.'_pop'() # register to return
+   code.'emit'(".return (%0)\n", S0)
    code.'emit'(".end\n")
    .return ()
 not_a_sym_err:
@@ -303,6 +309,8 @@ not_a_sym_err:
 ## Traverse an expression. If a (fn ...) form is found, it is
 ## substituted (destructively) with a ($closure ...) form. (fn ...) are
 ## collected in an array, transformed in ($fn ...) forms and returned
+## !!! collecting functions this way makes us loose informations about
+## !!! lexical and global vars
 .sub _collect_fn
    .param pmc expr
    .local pmc fns
