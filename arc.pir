@@ -32,7 +32,7 @@
 #    P0() # run the just compiled bytecode
 #    goto loop
 #end:	
-					#    say 'Done'
+#    say 'Done'
     P0 = getstdin
     P1 = new 'ReadStream'
 loop:
@@ -40,15 +40,20 @@ loop:
     P1.input(S0)
     P2 = _read(P1)
     P3 = _collect_fn(P2)
+    P4 = _empty_state()
     say '---'
-    print 'new expression: '
-    say P2
-    say 'functions:'
-    P3 = new 'Iterator', P3
+    _compile_expr(P4, P2)
+    P6 = getattribute P4, 'code'
+    S0 = P6
+    say S0
 loop1:
     unless P3 goto end
     P4 = shift P3
-    say P4
+    P5 = _empty_state()
+    _compile_expr(P5, P4)
+    P6 = getattribute P5, 'code'
+    S0 = P6
+    say S0    
     goto loop1
 end:	
     say '---'

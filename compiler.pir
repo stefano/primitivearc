@@ -57,6 +57,20 @@
 
 .namespace [ ]
 
+## create a new empty CompilerState
+.sub _empty_state
+   P0 = new 'CompilerState'
+   P1 = new 'CodeString'
+   setattribute P0, 'code', P1
+   P1 = new 'ResizableStringArray'
+   setattribute P0, 'lex', P1
+   P1 = new 'Integer'
+   P1 = 0
+   setattribute P0, 'nextreg', P1
+
+   .return (P0)
+.end
+
 .sub _lexical
    .param pmc lst
    .param pmc sym
@@ -90,6 +104,7 @@ yes:
    if type == 'Integer' goto int_num
    if type == 'Float' goto float_num
    if type == 'Symbol' goto var_ref
+   if type == 'Cons' goto special_or_call
    
    ## unknown expression
    die "Unknown expression"
@@ -120,7 +135,40 @@ var_ref: # variable reference
 lex:
    code.'emit'("%0 = find_lex '%1'", out_reg, expr)
    .return ()
-   
+special_or_call:
+   P0 = car(expr)
+   S0 = typeof P0
+   unless S0 == 'Symbol' goto is_call
+   S0 = P0
+   if S0 == '$fn' goto glob_fun
+   if S0 == '$closure' goto new_closure
+   goto is_call
+glob_fun:	# global function declaration
+   .return _compile_fn(cs, expr)
+new_closure:	# closure creation
+   .return _compile_closure(cs, expr)
+is_call:
+   .local pmc args # array holding function & arguments registers
+   args = new 'ResizableStringArray'
+   I0 = 0
+args_loop:	# compile every argument
+   S0 = typeof expr
+   unless S0 == 'Cons' goto args_emitted
+   P0 = car(expr)
+   _compile_expr(cs, P0)
+   I0 += 1
+   expr = cdr(expr)
+   goto args_loop
+   ## put register names in args
+args_emitted:
+   if I0 == 0 goto end_args
+   S0 = cs.'_pop'()
+   unshift args, S0
+   I0 -= 1
+   goto args_emitted
+end_args:
+   code.'emit'("arcall(%,)\n", args :flat)
+   .return ()
 .end
 
 .sub _emit_fn_head
@@ -228,6 +276,7 @@ end:
    cs.'_reset_reg'() # at the start of a function all regs are free
    _compile_seq(cs, P0)
    setattribute cs, 'lex', old_lex # restore lexical list
+   code.'emit'(".end\n")
    .return ()
 not_a_sym_err:
    die "Not a symbol!"
