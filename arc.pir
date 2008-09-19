@@ -39,7 +39,10 @@ loop:
     S0 = readline P0
     P1.input(S0)
     P2 = _read(P1)
-    P3 = _collect_fn(P2)
+    P7 = new 'ResizablePMCArray'
+    P8 = new 'String'
+    P8 = ""
+    P3 = _collect_fn(P2, P7, P8)
     P4 = _empty_state()
     say '---'
     _compile_expr(P4, P2)
@@ -50,7 +53,8 @@ loop1:
     unless P3 goto end
     P4 = shift P3
     P5 = _empty_state()
-    _compile_expr(P5, P4)
+    ## _compile_expr(P5, P4)
+    _compile_fn(P5, P4)
     P6 = getattribute P5, 'code'
     S0 = P6
     say S0    

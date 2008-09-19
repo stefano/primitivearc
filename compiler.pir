@@ -183,11 +183,17 @@ end_args:
 .sub _emit_fn_head
    .param pmc cs
    .param string name
+   .param string outer
    
    P0 = getattribute cs, 'code'
-   P0.'emit'(".sub %0\n", name)
-
+   if outer == "" goto is_global
+   goto not_global
+is_global:	
+   P0.'emit'(".sub %0", name)
    .return ()
+not_global:
+   P0.'emit'(".sub %0 :outer('%1')", name, outer)
+   .return () 
 .end
 
 ## emit a sequence of operations
@@ -220,38 +226,37 @@ error:
    .return ()
 .end
 
-## compiles a function expression
-## it must be at the global level
+## compiles a global function expression
+## takes an 'FnInfo' class
 ## ($fn name (arg1 ... . rest-arg) ...)
 .sub _compile_fn
    .param pmc cs
-   .param pmc expr
-   
+   .param pmc fn
+   .local pmc expr
+
+   expr = getattribute fn, 'expr'
    P0 = cdr(expr)
    P0 = car(P0) # cadr: function name
    S0 = typeof P0
    unless S0 == 'Symbol' goto not_a_sym_err
    S0 = P0
-   _emit_fn_head(cs, S0)
+   P1 = getattribute fn, 'outer'
+   S1 = P1
+   _emit_fn_head(cs, S0, S1)
 
    .local pmc code
-   .local pmc new_lex
-   .local pmc old_lex
    .local pmc nil
    .local int cons_type
    .local int sym_type
 
    code = getattribute cs, 'code'
-   old_lex = getattribute cs, 'lex'
-   new_lex = clone old_lex
    P2 = cdr(expr)
    P2 = cdr(P2)
    P2 = car(P2) # 3rd element: arg. list
    nil = get_hll_global 'nil'
    cons_type = find_type 'Cons'
    sym_type = find_type 'Symbol'
-   ## for each name in arg. list, put it in new_lex
-   ## and emit code for it
+   ## emit code for each name in arg. list
 loop:
    I0 = issame P2, nil
    if I0 goto end
@@ -260,29 +265,44 @@ loop:
    P3 = car(P2)
    I0 = typeof P3
    unless I0 == sym_type goto not_a_sym_err
-   push new_lex, P3 
    S0 = P3 # convert to string
-   code.'emit'(".param pmc '%0'\n", S0)
+   ## !!! valid arc names aren't valid parameter names
+   ## !!! should use gensyms (gsXXX are valid parameter names)
+   code.'emit'(".param pmc %0", S0)
    P2 = cdr(P2) # advance
    goto loop
 rest_arg:
    I0 = typeof P2
    unless I0 == sym_type goto not_a_sym_err
-   push new_lex, P2
    S0 = P2
-   code.'emit'(".param pmc '%0' :slurpy\n", S0)
+   code.'emit'(".param pmc %0 :slurpy", S0)
    ## !! we should convert slurpy array to cons list here
 end:
-   setattribute cs, 'lex', new_lex
+   ## make every parameter a lexical
+   P2 = cdr(expr)
+   P2 = cdr(P2)
+   P2 = car(P2) # args
+   P0 = new 'ResizablePMCArray'
+   _collect_names(P2, P0) # ?? could this be used for .param emission too?
+   P0 = new 'Iterator', P0
+loop_lex:
+   unless P0 goto end_lex
+   S0 = shift P0
+   code.'emit'(".lex '%0', %0", S0)
+   goto loop_lex
+end_lex:	
    P0 = cdr(expr)
    P0 = cdr(P0)
    P0 = cdr(P0) # cdddr: the body
    cs.'_reset_reg'() # at the start of a function all regs are free
+   P1 = getattribute fn, 'lex'
+   P2 = getattribute cs, 'lex' # previous lexicals
+   setattribute cs, 'lex', P1 # new lexicals
    _compile_seq(cs, P0)
-   setattribute cs, 'lex', old_lex # restore lexical list
+   setattribute cs, 'lex', P2 # restore lexicals
    S0 = cs.'_pop'() # register to return
-   code.'emit'(".return (%0)\n", S0)
-   code.'emit'(".end\n")
+   code.'emit'(".return (%0)", S0)
+   code.'emit'(".end")
    .return ()
 not_a_sym_err:
    die "Not a symbol!"
@@ -306,16 +326,54 @@ not_a_sym_err:
    .return ()
 .end
 
+## collect symbols in alist into an array
+## mostly copied from compile_fn. Not good
+.sub _collect_names
+   .param pmc args
+   .param pmc into
+   .local pmc nil
+   .local int cons_type
+   .local int sym_type
+   
+   nil = get_hll_global 'nil'
+   cons_type = find_type 'Cons'
+   sym_type = find_type 'Symbol'
+   
+loop:
+   I0 = issame args, nil
+   if I0 goto end
+   I0 = typeof args
+   unless I0 == cons_type goto rest_arg
+   P3 = car(args)
+   I0 = typeof P3
+   unless I0 == sym_type goto not_a_sym_err
+   push into, P3 
+   args = cdr(args) # advance
+   goto loop
+rest_arg:
+   I0 = typeof args
+   unless I0 == sym_type goto not_a_sym_err
+   push into, args
+end:	
+   .return ()
+not_a_sym_err:
+   die "Not a symbol!"
+   .return ()   
+.end
+
 ## Traverse an expression. If a (fn ...) form is found, it is
 ## substituted (destructively) with a ($closure ...) form. (fn ...) are
-## collected in an array, transformed in ($fn ...) forms and returned
+## collected in an array together with other informations, transformed in
+## ($fn ...) forms and returned
 ## !!! collecting functions this way makes us loose informations about
 ## !!! lexical and global vars
 .sub _collect_fn
    .param pmc expr
+   .param pmc lex # list of lexicals so far
+   .param pmc outer # name of outer function
    .local pmc fns
-   .local pmc name
    .local pmc body
+   .local pmc fn
    
    fns = new 'ResizablePMCArray'
 
@@ -332,20 +390,29 @@ not_a_sym_err:
    goto for_each
 found1:	
    ## add one function
+   fn = new 'FnInfo'
+   P0 = new 'String'
+   P0 = outer
+   setattribute fn, 'outer', P0
    P0 = intern("$fn")
    P1 = intern("$closure")
    P2 = cdr(expr)
    S0 = typeof P2
    unless S0 == 'Cons' goto malformed_function
-   body = cdr(P2) 
-   name = uniq() # name of fn
-   P3 = cons(name, P2) # (name (arg1 ...) body)
+   P3 = car(P2) # fn's args
+   lex = clone lex # will expand soon
+   _collect_names(P3, lex) # expand array of declared vars
+   setattribute fn, 'lex', lex
+   body = cdr(P2)
+   outer = uniq() # name of fn (also the new outer)
+   P3 = cons(outer, P2) # (name (arg1 ...) body)
    P3 = cons(P0, P3) # ($fn name (arg1 ...) body)
-   push fns, P3
+   setattribute fn, 'expr', P3 # function expression
+   push fns, fn
    ## transform into call to ($closure ...)
    scar(expr, P1)
    P2 = get_hll_global 'nil'
-   P4 = cons(name, P2) # (name)
+   P4 = cons(outer, P2) # (name)
    scdr(expr, P4) # expr = ($closure name)
    expr = body # set up to continue with for_each
    ## now call on every element
@@ -353,7 +420,7 @@ for_each:
    S0 = typeof expr
    unless S0 == 'Cons' goto end # list finished
    P0 = car(expr)
-   P1 = _collect_fn(P0) # array of sub-expression
+   P1 = _collect_fn(P0, lex, outer) # array of sub-expression
    I0 = P1 # length of the array
    if I0 == 0 goto next # no need to extend
    _extend(fns, P1) # extend fns with sub-expression's fn list
