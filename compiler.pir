@@ -84,6 +84,51 @@
    .return (P0)
 .end
 
+## top level compilation
+## !! destroys expr
+## !! just prints the result, for the moment
+.sub _tl_compile
+   .param pmc expr
+   .local pmc fns
+   .local pmc code
+
+   say 'Compilation result:'
+   say ''
+   
+   P0 = new 'ResizablePMCArray'
+   P1 = new 'String'
+   P1 = ""
+   fns = _collect_fn(expr, P0, P1)
+   P0 = _empty_state()
+   code = getattribute P0, 'code'
+   ## initialization stuff
+   code.'emit'(<<"END")
+.sub _main :anon :main
+   load_bytecode 'types.pbc'
+   load_bytecode 'symtable.pbc'
+   load_bytecode 'arcall.pbc'
+   load_bytecode 'compiler.pbc'
+   load_bytecode 'read.pbc'
+END
+   _compile_expr(P0, expr)
+   S0 = P0.'_pop'() # return register
+   code.'emit'("   .return (%0)", S0)
+   code.'emit'(".end")
+   S0 = code
+   say S0
+loop:
+    unless fns goto end
+    P0 = shift fns
+    P1 = _empty_state()
+    _compile_fn(P1, P0)
+    P0 = getattribute P1, 'code'
+    S0 = P0
+    say S0    
+    goto loop
+end:	
+    .return ()
+.end
+ 
 ## takes a list of ArgInfo and a symbol
 ## tells if symbol referes to a lexical variable
 .sub _lexical
@@ -407,8 +452,7 @@ not_a_sym_err:
 ## substituted (destructively) with a ($closure ...) form. (fn ...) are
 ## collected in an array together with other informations, transformed in
 ## ($fn ...) forms and returned
-## !!! collecting functions this way makes us loose informations about
-## !!! lexical and global vars
+## TODO: should also collect constants (quoted expressions, strings, etc.)
 .sub _collect_fn
    .param pmc expr
    .param pmc lex # list of lexicals so far
