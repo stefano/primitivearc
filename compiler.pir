@@ -116,16 +116,26 @@ yes:
    type = typeof expr
    out_reg = cs.'_push'() # output register
 
+   if type == 'Nil' goto is_nil
+   if type == 'T' goto is_t
    if type == 'String' goto str
    if type == 'Integer' goto int_num
    if type == 'Float' goto float_num
    if type == 'Symbol' goto var_ref
    if type == 'Cons' goto special_or_call
-   
+
    ## unknown expression
    die "Unknown expression"
    .return ()
 
+is_nil:
+   P0 = get_hll_global 'nil'
+   code.'emit'("%0 = get_hll_global 'nil'", out_reg)
+   .return ()
+is_t:
+   P0 = get_hll_global 't'
+   code.'emit'("%0 = get_hll_global 't'", out_reg)
+   .return ()
 str:
    S1 = code.'escape'(expr) # value
    code.'emit'("%0 = new 'String'\n", out_reg)
@@ -206,6 +216,7 @@ not_global:
 .end
 
 ## emit a sequence of operations
+## if sequence is empty, emit code to return nil
 .sub _compile_seq
    .param pmc cs
    .param pmc seq
@@ -215,6 +226,9 @@ not_global:
    nil = get_hll_global 'nil'
    cons_type = find_type 'Cons'
 
+   I0 = issame seq, nil
+   if I0 goto empty_seq
+   
    P0 = seq 
 loop:
    I0 = issame seq, nil
@@ -229,6 +243,9 @@ loop:
    cs.'_pop'() # ignore return register of this expression
    goto loop
 end:	
+   .return ()
+empty_seq:
+   _compile_expr(cs, nil) # code to return nil
    .return ()
 error:
    die "Sequence is not a proper list!"
