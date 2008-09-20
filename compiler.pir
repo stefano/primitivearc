@@ -14,6 +14,12 @@
    addattribute P0, 'globalp' # is this a global function (not a closure)?
    addattribute P0, 'lex' # list of lexical variables at definiton time
    addattribute P0, 'outer' # name of external function
+
+   ## function arg information
+   P0 = newclass 'ArgInfo'
+   addattribute P0, 'sym'
+   addattribute P0, 'type' # only 'normal' or 'rest' for now
+   addattribute P0, 'rep' # parrot representaion 
    
    .return ()
 .end
@@ -78,6 +84,8 @@
    .return (P0)
 .end
 
+## takes a list of ArgInfo and a symbol
+## tells if symbol referes to a lexical variable
 .sub _lexical
    .param pmc lst
    .param pmc sym
@@ -86,6 +94,7 @@
 loop:
    unless P0 goto no
    P1 = shift P0
+   P1 = getattribute P1, 'sym'
    I0 = issame sym, P1
    if I0 goto yes
    goto loop
@@ -245,52 +254,49 @@ error:
    _emit_fn_head(cs, S0, S1)
 
    .local pmc code
-   .local pmc nil
-   .local int cons_type
-   .local int sym_type
-
+   .local pmc args
    code = getattribute cs, 'code'
+
    P2 = cdr(expr)
    P2 = cdr(P2)
    P2 = car(P2) # 3rd element: arg. list
-   nil = get_hll_global 'nil'
-   cons_type = find_type 'Cons'
-   sym_type = find_type 'Symbol'
    ## emit code for each name in arg. list
+   args = new 'ResizablePMCArray'
+   _collect_names(P2, args)
+   ## parameter declaration
+   P2 = new 'Iterator', args
 loop:
-   I0 = issame P2, nil
-   if I0 goto end
-   I0 = typeof P2
-   unless I0 == cons_type goto rest_arg
-   P3 = car(P2)
-   I0 = typeof P3
-   unless I0 == sym_type goto not_a_sym_err
-   S0 = P3 # convert to string
-   ## !!! valid arc names aren't valid parameter names
-   ## !!! should use gensyms (gsXXX are valid parameter names)
-   code.'emit'(".param pmc %0", S0)
-   P2 = cdr(P2) # advance
-   goto loop
-rest_arg:
-   I0 = typeof P2
-   unless I0 == sym_type goto not_a_sym_err
-   S0 = P2
-   code.'emit'(".param pmc %0 :slurpy", S0)
+   unless P2 goto end
+   P3 = shift P2
+   P4 = getattribute P3, 'type'
+   S0 = P4
+   P4 = getattribute P3, 'rep'
+   if S0 == 'normal' goto norm
+   if S0 == 'rest' goto rest
+   die "Unknown parameter type!"
+   .return ()
+norm:
+   code.'emit'(".param pmc %0", P4)
+   goto end_if
+rest:
+   code.'emit'(".param pmc %0 :slurpy", P4)
    ## !! we should convert slurpy array to cons list here
+end_if:	
+   goto loop
 end:
-   ## make every parameter a lexical
-   P2 = cdr(expr)
-   P2 = cdr(P2)
-   P2 = car(P2) # args
-   P0 = new 'ResizablePMCArray'
-   _collect_names(P2, P0) # ?? could this be used for .param emission too?
-   P0 = new 'Iterator', P0
+   ## lexical names
+   P2 = new 'Iterator', args
 loop_lex:
-   unless P0 goto end_lex
-   S0 = shift P0
-   code.'emit'(".lex '%0', %0", S0)
+   unless P2 goto end_lex
+   P3 = shift P2
+   P4 = getattribute P3, 'sym'
+   S0 = P4
+   P4 = getattribute P3, 'rep'
+   S1 = P4
+   code.'emit'(".lex '%0', %1", S0, S1)
    goto loop_lex
-end_lex:	
+end_lex:
+   ## emit the body
    P0 = cdr(expr)
    P0 = cdr(P0)
    P0 = cdr(P0) # cdddr: the body
@@ -326,8 +332,7 @@ not_a_sym_err:
    .return ()
 .end
 
-## collect symbols in alist into an array
-## mostly copied from compile_fn. Not good
+## collect ArgInfo in a list into an array
 .sub _collect_names
    .param pmc args
    .param pmc into
@@ -347,13 +352,33 @@ loop:
    P3 = car(args)
    I0 = typeof P3
    unless I0 == sym_type goto not_a_sym_err
-   push into, P3 
+   P4 = new 'ArgInfo'
+   setattribute P4, 'sym', P3
+   P5 = new 'String'
+   P5 = 'normal'
+   setattribute P4, 'type', P5
+   P5 = uniq() # gensyms are valid parameter names
+   S0 = P5 # conversion
+   P5 = new 'String'
+   P5 = S0
+   setattribute P4, 'rep', P5
+   push into, P4
    args = cdr(args) # advance
    goto loop
 rest_arg:
    I0 = typeof args
    unless I0 == sym_type goto not_a_sym_err
-   push into, args
+   P4 = new 'ArgInfo'
+   setattribute P4, 'sym', args
+   P5 = new 'String'
+   P5 = 'rest'
+   setattribute P4, 'type', P5
+   P5 = uniq() # gensyms are valid parameter names
+   S0 = P5 # conversion
+   P5 = new 'String'
+   P5 = S0
+   setattribute P4, 'rep', P5
+   push into, P4
 end:	
    .return ()
 not_a_sym_err:
