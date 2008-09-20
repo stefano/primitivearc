@@ -112,7 +112,11 @@ end:
 
 .sub car
    .param pmc cell
+   P0 = get_hll_global 'nil'
+   I0 = issame P0, cell
+   if I0 goto final
    P0 = cell[0]
+final:
    .return (P0)
 .end
 
@@ -125,7 +129,11 @@ end:
 
 .sub cdr
    .param pmc cell
+   P0 = get_hll_global 'nil'
+   I0 = issame P0, cell
+   if I0 goto final
    P0 = cell[1]
+final:
    .return (P0)
 .end
 
