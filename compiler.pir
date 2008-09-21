@@ -104,7 +104,7 @@
    P0 = new 'ResizablePMCArray'
    P1 = new 'String'
    P1 = ""
-   (fns, consts, expr) = _collect_fn_and_consts(expr, P0, P1)
+   (fns, consts, expr) = _collect_fn_and_consts(expr, P0, P1, 0)
    P0 = _empty_state()
    code = getattribute P0, 'code'
    ## initialization stuff
@@ -320,7 +320,6 @@ error:
    .local pmc expr
 
    expr = getattribute fn, 'expr'
-   say expr
    P0 = cdr(expr)
    P0 = car(P0) # cadr: function name
    S0 = typeof P0
@@ -472,6 +471,7 @@ not_a_sym_err:
    .param pmc expr
    .param pmc lex # list of lexicals so far
    .param pmc outer # name of outer function
+   .param int is_seq # is the list passed a sequence of expressions ?
    .local pmc new_expr
    .local pmc fns
    .local pmc consts
@@ -487,6 +487,8 @@ not_a_sym_err:
    if S0 == 'Float' goto const
    if S0 == 'String' goto const
    unless S0 == 'Cons' goto end
+   ## if it is a sequence of expressions it cannot be a quote or a fn
+   if is_seq goto for_each_init
    ## consider the first element
    P0 = car(expr)
    S0 = typeof P0
@@ -513,7 +515,7 @@ found1:
    setattribute fn, 'lex', lex
    body = cdr(P2)
    outer = uniq() # name of fn (also the new outer)
-   (P4, P5, body) = _collect_fn_and_consts(body, lex, outer)
+   (P4, P5, body) = _collect_fn_and_consts(body, lex, outer, 1)
    _extend(fns, P4)
    _extend(consts, P5)
    P3 = car(P2) # (arg1 ...)
@@ -538,7 +540,7 @@ for_each:
    S0 = typeof expr
    unless S0 == 'Cons' goto end # list finished
    P0 = car(expr)
-   (P1, P2, P3) = _collect_fn_and_consts(P0, lex, outer) # array of sub-expression
+   (P1, P2, P3) = _collect_fn_and_consts(P0, lex, outer, 0) # array of sub-expression
    _extend(fns, P1) # extend fns with sub-expression's fn list
    _extend(consts, P2)
 next:
