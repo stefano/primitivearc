@@ -15,6 +15,11 @@
    addattribute P0, 'lex' # list of lexical variables at definiton time
    addattribute P0, 'outer' # name of external function
 
+   ## constant value information
+   P0 = newclass 'ConstInfo'
+   addattribute P0, 'expr'
+   addattribute P0, 'name' # global name of constant
+   
    ## function arg information
    P0 = newclass 'ArgInfo'
    addattribute P0, 'sym'
@@ -90,6 +95,7 @@
 .sub _tl_compile
    .param pmc expr
    .local pmc fns
+   .local pmc consts
    .local pmc code
 
    say 'Compilation result:'
@@ -98,7 +104,7 @@
    P0 = new 'ResizablePMCArray'
    P1 = new 'String'
    P1 = ""
-   fns = _collect_fn(expr, P0, P1)
+   (fns, consts, expr) = _collect_fn_and_consts(expr, P0, P1)
    P0 = _empty_state()
    code = getattribute P0, 'code'
    ## initialization stuff
@@ -125,7 +131,18 @@ loop:
     S0 = P0
     say S0    
     goto loop
-end:	
+end:
+loop1:
+    unless consts goto end1
+    P0 = shift consts
+    P1 = getattribute P0, 'expr'
+    P2 = getattribute P0, 'name'
+    print 'Const: '
+    print P2
+    print ' -> '
+    say P1
+    goto loop1
+end1:	
     .return ()
 .end
  
@@ -449,31 +466,38 @@ not_a_sym_err:
 .end
 
 ## Traverse an expression. If a (fn ...) form is found, it is
-## substituted (destructively) with a ($closure ...) form. (fn ...) are
-## collected in an array together with other informations, transformed in
-## ($fn ...) forms and returned
-## TODO: should also collect constants (quoted expressions, strings, etc.)
-.sub _collect_fn
+## substituted with a ($closure ...) form. (fn ...) are collected in an
+## array together with other informations, transformed in
+## ($fn ...) forms and returned together with the new expression
+## also collects constant values (quoted expressions, strings, etc.)
+.sub _collect_fn_and_consts
    .param pmc expr
    .param pmc lex # list of lexicals so far
    .param pmc outer # name of outer function
+   .local pmc new_expr
    .local pmc fns
+   .local pmc consts
    .local pmc body
    .local pmc fn
-   
-   fns = new 'ResizablePMCArray'
 
+   new_expr = expr
+   fns = new 'ResizablePMCArray'
+   consts = new 'ResizablePMCArray'
+   
    S0 = typeof expr
+   if S0 == 'Integer' goto const
+   if S0 == 'Float' goto const
+   if S0 == 'String' goto const
    unless S0 == 'Cons' goto end
    ## consider the first element
    P0 = car(expr)
    S0 = typeof P0
-   unless S0 == 'Symbol' goto for_each
+   unless S0 == 'Symbol' goto for_each_init
    S0 = P0 # conversion
-   if S0 == "quote" goto end # quoted expressions should be ignored
+   if S0 == "quote" goto quote_const
    if S0 == "fn" goto found1
    expr = cdr(expr)
-   goto for_each
+   goto for_each_init
 found1:	
    ## add one function
    fn = new 'FnInfo'
@@ -491,32 +515,78 @@ found1:
    setattribute fn, 'lex', lex
    body = cdr(P2)
    outer = uniq() # name of fn (also the new outer)
-   P3 = cons(outer, P2) # (name (arg1 ...) body)
+   (P4, P5, body) = _collect_fn_and_consts(body, lex, outer)
+   _extend(fns, P4)
+   _extend(consts, P5)
+   P3 = car(P2) # (arg1 ...)
+   P3 = cons(P3, body) # ((arg1 ...) body)
+   P3 = cons(outer, P3) # (name (arg1 ...) body)
    P3 = cons(P0, P3) # ($fn name (arg1 ...) body)
    setattribute fn, 'expr', P3 # function expression
    push fns, fn
-   ## transform into call to ($closure ...)
-   scar(expr, P1)
+   ## build ($closure ...) form
    P2 = get_hll_global 'nil'
-   P4 = cons(outer, P2) # (name)
-   scdr(expr, P4) # expr = ($closure name)
-   expr = body # set up to continue with for_each
-   ## now call on every element
+   new_expr = cons(outer, P2) # (name)
+   new_expr = cons(P1, new_expr) # ($closure name)
+   .return (fns, consts, new_expr)
+for_each_init:
+   ## call on every element
+   .local pmc last # last cons cell
+   .local pmc nil
+   nil = get_hll_global 'nil'
+   last = nil
+   new_expr = nil
 for_each:
    S0 = typeof expr
    unless S0 == 'Cons' goto end # list finished
    P0 = car(expr)
-   P1 = _collect_fn(P0, lex, outer) # array of sub-expression
-   I0 = P1 # length of the array
-   if I0 == 0 goto next # no need to extend
+   (P1, P2, P3) = _collect_fn_and_consts(P0, lex, outer) # array of sub-expression
    _extend(fns, P1) # extend fns with sub-expression's fn list
+   _extend(consts, P2)
 next:
+   ## append element to the end of the list
+   I0 = issame last, nil
+   if I0 goto first_elem
+   P4 = cons(P3, nil)
+   scdr(last, P4)
+   last = cdr(last)
+   goto end_if
+first_elem:	
+   last = cons(P3, nil)
+   new_expr = last
+end_if:	
    expr = cdr(expr)
    goto for_each
-end:	
-   .return (fns)
+end:
+   .return (fns, consts, new_expr)
 malformed_function:
    die "Malformed function!"
+   .return (0)
+const:
+   ## add constant value
+   P0 = uniq() # the global name
+   P1 = new 'ConstInfo'
+   setattribute P1, 'expr', expr
+   setattribute P1, 'name', P0
+   push consts, P1
+   .return (fns, consts, P0)
+quote_const:
+   P0 = cdr(expr)
+   S0 = typeof P0
+   unless S0 == 'Cons' goto malformed_quote
+   P1 = cdr(P0)
+   P2 = get_hll_global 'nil'
+   I0 = issame P1, P2
+   unless I0 goto malformed_quote
+   P0 = car(P0)
+   P1 = new 'ConstInfo'
+   P2 = uniq()
+   setattribute P1, 'expr', P0
+   setattribute P1, 'name', P2
+   push consts, P1
+   .return (fns, consts, P2)
+malformed_quote:
+   die "Malformed quote expression!"
    .return (0)
 .end
 

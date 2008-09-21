@@ -9,9 +9,8 @@
 .sub arcall :multi(Sub)
    .param pmc fn
    .param pmc args :slurpy
+
    .return fn(args :flat)
-   ## do stuff here
-   #.return ()
 .end
 
 .sub arcall :multi(Cons)
