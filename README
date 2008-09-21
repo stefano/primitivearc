@@ -24,11 +24,12 @@ Roadmap:
   * Symbols -- done
   * Strings -- done
   * Lists and dotted lists -- done
-  * [ ... ] syntax
+  * [ ... ] syntax -- done
   * intrasymbol syntax: '.', '!', ':'
-  * quote, quasiquote and unquote
+  * quote -- done
+  * quasiquote and unquote
 * Compiler
-  * quote (complex constants)
+  * quote (complex constants) -- done
   * if with multiple choices
   * fn 
     * basic

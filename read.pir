@@ -36,6 +36,8 @@
    P0["("] = P1
    P1 = get_hll_global '_read_quote'
    P0["'"] = P1
+   P1 = get_hll_global '_read_square_bracket'
+   P0["["] = P1
    set_hll_global 'read-table*', P0
 
    ## Global escape table
@@ -327,6 +329,20 @@ error:
 
    rs.get1() # skip (
    .return _read_list_with_ter(rs, ")")
+.end
+
+.sub _read_square_bracket
+   .param pmc rs
+
+   rs.get1() # skip [
+   P0 = _read_list_with_ter(rs, "]") # expr
+   P1 = intern("fn")
+   P2 = intern("_")
+   P3 = get_hll_global 'nil'
+   P2 = cons(P2, P3) # (_)
+   P0 = cons(P0, P3) # (expr)
+   P2 = cons(P2, P0) # ((_) expr)
+   .return cons(P1, P2) # (fn (_) expr)
 .end
 
 .sub _read_quote
