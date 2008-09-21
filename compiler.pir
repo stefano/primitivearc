@@ -73,6 +73,14 @@
    .return self.'_free_reg'()
 .end
 
+.sub _top :method
+   P0 = getattribute self, 'nextreg'
+   S0 = '$P'
+   S1 = P0
+   S0 .= S1
+   .return (S0)
+.end
+
 .namespace [ ]
 
 ## create a new empty CompilerState
@@ -116,12 +124,12 @@
    load_bytecode 'compiler.pbc'
    load_bytecode 'read.pbc'
 END
-   _compile_expr(P0, expr)
-   S0 = P0.'_pop'() # return register
-   code.'emit'("   .return (%0)", S0)
-   code.'emit'(".end")
-   S0 = code
-   say S0
+    _compile_expr(P0, expr)
+    S0 = P0.'_pop'() # return register
+    code.'emit'("   .return (%0)", S0)
+    code.'emit'(".end")
+    S0 = code
+    say S0
 loop:
     unless fns goto end
     P0 = shift fns
@@ -132,17 +140,19 @@ loop:
     say S0    
     goto loop
 end:
+    P0 = _empty_state()
+    code = getattribute P0, 'code'
+    code.'emit'(".sub _const_init :anon :init")
 loop1:
     unless consts goto end1
-    P0 = shift consts
-    P1 = getattribute P0, 'expr'
-    P2 = getattribute P0, 'name'
-    print 'Const: '
-    print P2
-    print ' -> '
-    say P1
+    P1 = shift consts
+    _compile_const(P0, P1)
     goto loop1
-end1:	
+end1:
+    code.'emit'(".return ()")
+    code.'emit'(".end")
+    S0 = code
+    say S0
     .return ()
 .end
  
@@ -256,6 +266,37 @@ end_args:
    code .= " = "
    code.'emit'("arcall(%,)\n", args :flat)
    .return ()
+.end
+
+## emit code to create a constant value
+.sub _compile_const
+   .param pmc cs
+   .param pmc cinfo
+   .local pmc code
+   .local pmc expr
+   .local string out
+   .local string out_reg
+   
+   code = getattribute cs, 'code'
+   expr = getattribute cinfo, 'expr'
+   P0 = getattribute cinfo, 'name'
+   out = P0
+   S0 = typeof expr
+   if S0 == 'Symbol' goto a_sym
+   
+   ## code for self evaluating constants
+   _compile_expr(cs, expr)
+   S0 = cs.'_pop'()
+   code.'emit'("set_hll_global '%0', %1", out, S0)
+   .return ()
+
+a_sym:
+   S0 = expr
+   S1 = cs.'_top'()
+   code.'emit'("%0 = intern('%1')", S1, S0)
+   code.'emit'("set_hll_global '%0', %1", out, S1)
+   .return ()
+   
 .end
 
 .sub _emit_fn_head
