@@ -228,13 +228,10 @@ special_or_call:
    S0 = typeof P0
    unless S0 == 'Symbol' goto is_call
    S0 = P0
-   if S0 == '$fn' goto glob_fun
-   if S0 == '$closure' goto new_closure
+   if S0 == "$closure" goto new_closure
    goto is_call
-glob_fun:	# global function declaration
-   .return _compile_fn(cs, expr)
 new_closure:	# closure creation
-   .return _compile_closure(cs, expr)
+   .return _compile_closure(cs, expr, out_reg)
 is_call:
    .local pmc args # array holding function & arguments registers
    args = new 'ResizableStringArray'
@@ -323,6 +320,7 @@ error:
    .local pmc expr
 
    expr = getattribute fn, 'expr'
+   say expr
    P0 = cdr(expr)
    P0 = car(P0) # cadr: function name
    S0 = typeof P0
@@ -399,15 +397,15 @@ not_a_sym_err:
 .sub _compile_closure
    .param pmc cs
    .param pmc expr
+   .param string out_reg
 
    P0 = cdr(expr)
    P0 = car(P0) # cadr: code-name
    S0 = P0
    .local pmc code
    code = getattribute cs, 'code'
-   S1 = cs.'_push'()
-   code.'emit'("%0 = get_hll_global '%1'\n", S1, S0) # get the global Sub
-   code.'emit'("%0 = newclosure %0", S1) # create the closure
+   code.'emit'("%0 = get_hll_global '%1'\n", out_reg, S0) # get the global Sub
+   code.'emit'("%0 = newclosure %0", out_reg) # create the closure
    .return ()
 .end
 
@@ -496,7 +494,7 @@ not_a_sym_err:
    S0 = P0 # conversion
    if S0 == "quote" goto quote_const
    if S0 == "fn" goto found1
-   expr = cdr(expr)
+   #expr = cdr(expr)
    goto for_each_init
 found1:	
    ## add one function
@@ -551,7 +549,7 @@ next:
    scdr(last, P4)
    last = cdr(last)
    goto end_if
-first_elem:	
+first_elem:
    last = cons(P3, nil)
    new_expr = last
 end_if:	
