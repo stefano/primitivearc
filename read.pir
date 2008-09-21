@@ -33,7 +33,9 @@
    P1 = get_hll_global '_read_string'
    P0["\""] = P1
    P1 = get_hll_global '_read_list'
-   P0["("] = P1   
+   P0["("] = P1
+   P1 = get_hll_global '_read_quote'
+   P0["'"] = P1
    set_hll_global 'read-table*', P0
 
    ## Global escape table
@@ -325,4 +327,15 @@ error:
 
    rs.get1() # skip (
    .return _read_list_with_ter(rs, ")")
+.end
+
+.sub _read_quote
+   .param pmc rs
+   
+   rs.get1() # skip '
+   P0 = _read(rs) # expr
+   P1 = intern("quote")
+   P2 = get_hll_global 'nil'
+   P0 = cons(P0, P2) # (expr)
+   .return cons(P1, P0) # (quote expr)
 .end

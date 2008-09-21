@@ -280,23 +280,39 @@ end_args:
    code = getattribute cs, 'code'
    expr = getattribute cinfo, 'expr'
    P0 = getattribute cinfo, 'name'
-   out = P0
+   _emit_const(cs, expr)
+   S0 = cs.'_pop'()
+   code.'emit'("set_hll_global '%0', %1", P0, S0)
+
+   .return ()
+.end
+
+.sub _emit_const
+   .param pmc cs
+   .param pmc expr
+   .local pmc code
+
+   code = getattribute cs, 'code'
    S0 = typeof expr
    if S0 == 'Symbol' goto a_sym
-   
+   if S0 == 'Cons' goto a_cons   
    ## code for self evaluating constants
-   _compile_expr(cs, expr)
-   S0 = cs.'_pop'()
-   code.'emit'("set_hll_global '%0', %1", out, S0)
-   .return ()
-
+   .return _compile_expr(cs, expr)
 a_sym:
    S0 = expr
-   S1 = cs.'_top'()
+   S1 = cs.'_push'()
    code.'emit'("%0 = intern('%1')", S1, S0)
-   code.'emit'("set_hll_global '%0', %1", out, S1)
    .return ()
-   
+a_cons:
+   P0 = car(expr)
+   P1 = cdr(expr)
+   _emit_const(cs, P0)
+   _emit_const(cs, P1)
+   S0 = cs.'_pop'() # cdr register
+   S1 = cs.'_pop'() # car register
+   S2 = cs.'_push'() # result
+   code.'emit'("%0 = cons(%1, %2)", S2, S1, S0)
+   .return ()
 .end
 
 .sub _emit_fn_head
