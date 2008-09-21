@@ -38,6 +38,10 @@
    P0["'"] = P1
    P1 = get_hll_global '_read_square_bracket'
    P0["["] = P1
+   P1 = get_hll_global '_read_qq'
+   P0["`"] = P1
+   P1 = get_hll_global '_read_unquote'
+   P0[","] = P1
    set_hll_global 'read-table*', P0
 
    ## Global escape table
@@ -345,13 +349,31 @@ error:
    .return cons(P1, P2) # (fn (_) expr)
 .end
 
-.sub _read_quote
+.sub _read_next_with_head
    .param pmc rs
+   .param string head
    
-   rs.get1() # skip '
    P0 = _read(rs) # expr
-   P1 = intern("quote")
+   P1 = intern(head)
    P2 = get_hll_global 'nil'
    P0 = cons(P0, P2) # (expr)
-   .return cons(P1, P0) # (quote expr)
+   .return cons(P1, P0) # (head expr)
+.end
+
+.sub _read_quote
+   .param pmc rs
+   rs.get1() # skip '
+   .return _read_next_with_head(rs, "quote")
+.end
+
+.sub _read_qq
+   .param pmc rs
+   rs.get1() # skip `
+   .return _read_next_with_head(rs, "quasiquote")
+.end
+
+.sub _read_unquote
+   .param pmc rs
+   rs.get1() # skip ,
+   .return _read_next_with_head(rs, "unquote")
 .end

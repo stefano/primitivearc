@@ -27,12 +27,12 @@ Roadmap:
   * [ ... ] syntax -- done
   * intrasymbol syntax: '.', '!', ':'
   * quote -- done
-  * quasiquote and unquote
+  * quasiquote and unquote -- done
 * Compiler
   * quote (complex constants) -- done
   * if with multiple choices
   * fn 
-    * basic
+    * basic -- done
     * optional and destructuring args
   * ar-call
   * apply

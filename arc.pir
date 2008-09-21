@@ -39,6 +39,7 @@ loop:
     S0 = readline P0
     P1.input(S0)
     P2 = _read(P1)
+    say P2
     say ''
     _tl_compile(P2)
     say '---'
