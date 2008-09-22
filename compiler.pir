@@ -239,9 +239,12 @@ special_or_call:
    unless S0 == 'Symbol' goto is_call
    S0 = P0
    if S0 == "$closure" goto new_closure
+   if S0 == "if" goto if_expr
    goto is_call
 new_closure:	# closure creation
    .return _compile_closure(cs, expr, out_reg)
+if_expr:
+   .return _compile_if(cs, expr, out_reg)
 is_call:
    .local pmc args # array holding function & arguments registers
    args = new 'ResizableStringArray'
@@ -465,6 +468,71 @@ not_a_sym_err:
    .return ()
 .end
 
+## if form: (if t1 then1 t2 then2 ... else)
+## TODO: give better names to labels
+.sub _compile_if
+   .param pmc cs
+   .param pmc expr
+   .param string out_reg
+
+   P0 = uniq()
+   S0 = P0
+   P0 = cdr(expr) # throw away 'if
+   
+   _compile_if_rec(cs, P0, out_reg, S0)
+   P0 = getattribute cs, 'code'
+   P0.'emit'("%0:", S0)
+   .return ()
+.end
+
+.sub _compile_if_rec
+   .param pmc cs
+   .param pmc expr
+   .param string out_reg
+   .param string end_label
+   .local pmc code
+   .local pmc nil
+
+   nil = get_hll_global 'nil'
+   code = getattribute cs, 'code'
+   I0 = len(expr)
+   if I0 == 0 goto ret_nil
+   if I0 == 1 goto else_part
+   ## I0 > 1
+   .local string else
+   P0 = uniq() # else part
+   else = P0
+   P1 = car(expr) # test
+   P2 = cdr(expr)
+   P2 = car(P2) # then part
+   _compile_expr(cs, P1)
+   S0 = cs.'_push'()
+   code.'emit'("%0 = get_hll_global 'nil'", S0)
+   cs.'_pop'()
+   S1 = cs.'_pop'()
+   code.'emit'("I0 = issame %0, %1", S0, S1)
+   code.'emit'("if I0 goto %0", else)
+   ## then emission
+   _compile_expr(cs, P2)
+   S0 = cs.'_pop'() # take result  
+   code.'emit'("%0 = %1", out_reg, S0) # put it in output register
+   code.'emit'("goto %0", end_label)
+   ## else emission
+   code.'emit'("%0:", else)
+   P0 = cdr(expr)
+   P0 = cdr(P0)
+   .return _compile_if_rec(cs, P0, out_reg, end_label)
+else_part:
+   P0 = car(expr) # only element
+   _compile_expr(cs, P0)
+   S0 = cs.'_pop'()
+   code.'emit'("%0 = %1", out_reg, S0)
+   .return ()
+ret_nil:
+   code.'emit'("%0 = get_hll_global 'nil'", out_reg)
+   .return ()
+.end
+
 ## collect ArgInfo in a list into an array
 .sub _collect_names
    .param pmc args
@@ -484,7 +552,7 @@ loop:
    unless I0 == cons_type goto rest_arg
    P3 = car(args)
    I0 = typeof P3
-   unless I0 == sym_type goto not_a_sym_err
+   unless I0 == sym_type goto not_a_sym
    P4 = new 'ArgInfo'
    setattribute P4, 'sym', P3
    P5 = new 'String'
@@ -498,9 +566,46 @@ loop:
    push into, P4
    args = cdr(args) # advance
    goto loop
+not_a_sym:
+   ## try to see if it is an optional argument: (o name value)
+   ## !! not working
+   unless I0 == cons_type goto arg_err
+   P0 = car(args)
+   I0 = typeof P0
+   unless I0 == sym_type goto arg_err
+   S0 = P0
+   unless S0 == "o" goto arg_err
+   P0 = cdr(args)
+   I0 = typeof P0
+   unless I0 == cons_type goto arg_err
+   P1 = car(P0)
+   I0 = typeof P1
+   unless I0 == sym_type goto arg_err
+   P3 = new 'ArgInfo'
+   setattribute P3, 'sym', P1
+   P1 = new 'String'
+   P1 = "optional"
+   setattribute P3, 'type', P1
+   P1 = uniq()
+   S0 = P1
+   P1 = new 'String'
+   P1 = S0
+   setattribute P3, 'rep', P1
+   P1 = cdr(P0)
+   I0 = issame P1, nil
+   if I0 goto ok
+   I0 = typeof P1
+   if I0 == cons_type goto ok
+   goto arg_err
+ok:	
+   P1 = car(P1) # the value
+   setattribute P3, 'value', P1
+   push into, P3
+   args = cdr(args)
+   goto loop
 rest_arg:
    I0 = typeof args
-   unless I0 == sym_type goto not_a_sym_err
+   unless I0 == sym_type goto arg_err
    P4 = new 'ArgInfo'
    setattribute P4, 'sym', args
    P5 = new 'String'
@@ -514,8 +619,8 @@ rest_arg:
    push into, P4
 end:	
    .return ()
-not_a_sym_err:
-   die "Not a symbol!"
+arg_err:
+   die "Wrong argument format!"
    .return ()   
 .end
 

@@ -30,7 +30,7 @@ Roadmap:
   * quasiquote and unquote -- done
 * Compiler
   * quote (complex constants) -- done
-  * if with multiple choices
+  * if with multiple choices -- done
   * fn 
     * basic -- done
     * optional and destructuring args

@@ -162,6 +162,24 @@ end:
    .return (res)
 .end
 
+.sub len
+   .param pmc lst
+
+   .local pmc nil
+   nil = get_hll_global 'nil'
+   I0 = 0
+loop:
+   I1 = issame lst, nil
+   if I1 goto end
+   lst = cdr(lst)
+   I0 += 1
+   goto loop
+end:
+   P0 = new 'Integer'
+   P0 = I0
+   .return (P0)
+.end
+
 ## there is no plist in Arc...
 .sub plist
    .param pmc sym
