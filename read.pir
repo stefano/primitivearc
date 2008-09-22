@@ -198,12 +198,15 @@ ret_nil:
 .end
 
 ## check if a string contains only of a certain set of character
+## at least one must be present
 .sub _str_made_of
    .param string in
    .param string allowed
+   .param int from
 
-   I0 = 0
+   I0 = from
    I1 = length in
+   if from >= I1 goto fail
 loop:	
    if I0 >= I1 goto ok
    S0 = in[I0]
@@ -222,21 +225,26 @@ fail:
 ## ?? could _read_num substitute _read_symbol? ?? 
 .sub _read_num
    .param pmc rs
+   .local int from
 
    ## read it
    S0 = rs.get_upto(specandsep)
+   ## if it is parsed as a number, from will be 0 if it is positive,
+   ## 1 if it isn't: it will mark the first digit position
+   from = index S0, "-"
+   from += 1
    ## check if it has one '-' not at the beginning
    I0 = index S0, "-", 1
    unless I0 == -1 goto mk_symbol
    ## check if it is a float
    I0 = index S0, "."
-   if I0 == -1 goto try_integer # not dot found
+   if I0 == -1 goto try_integer # no dot found
    ## has it two dots ?
    I0 += 1
    I0 = index S0, ".", I0
    unless I0 == -1 goto mk_symbol # if it has two dots, it's a symbol
    ## check if it has only digits (except for the dot and minus sign)
-   I0 = _str_made_of(S0, "-0123456789.")
+   I0 = _str_made_of(S0, "0123456789.", from)
    unless I0 goto mk_symbol
    ## now we're sure we've got a float
    P0 = new 'Float'
@@ -245,7 +253,7 @@ fail:
    .return (P0)
 try_integer:
    ## try to parse an int
-   I0 = _str_made_of(S0, "-0123456789")
+   I0 = _str_made_of(S0, "0123456789", from)
    unless I0 goto mk_symbol
    P0 = new 'Integer'
    I0 = S0 # type conversion
