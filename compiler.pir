@@ -98,16 +98,14 @@
 .end
 
 ## top level compilation
-## !! destroys expr
-## !! just prints the result, for the moment
 .sub _tl_compile
    .param pmc expr
    .local pmc fns
    .local pmc consts
    .local pmc code
 
-   say 'Compilation result:'
-   say ''
+##   say 'Compilation result:'
+##   say ''
    
    P0 = new 'ResizablePMCArray'
    P1 = new 'String'
@@ -116,32 +114,9 @@
    P0 = _empty_state()
    code = getattribute P0, 'code'
    code.'emit'(".HLL 'Arc', ''")
-   ## initialization stuff
-loop:
-    unless fns goto end
-    P0 = pop fns
-    P1 = _empty_state()
-    _compile_fn(P1, P0)
-    P0 = getattribute P1, 'code'
-    S0 = P0
-    say S0    
-    goto loop
-end:
-    P0 = _empty_state()
-    code = getattribute P0, 'code'
-    code.'emit'(".sub _const_init :anon :init")
-loop1:
-    unless consts goto end1
-    P1 = shift consts
-    _compile_const(P0, P1)
-    goto loop1
-end1:
-    code.'emit'(".return ()")
-    code.'emit'(".end")
-
-    ## main function
-    code.'emit'(<<"END")
-.sub _main :anon :init
+   ## main function
+   code.'emit'(<<"END")
+.sub _main :anon
 ##   load_bytecode 'types.pbc'
 ##   load_bytecode 'symtable.pbc'
 ##   load_bytecode 'arcall.pbc'
@@ -154,8 +129,31 @@ END
     code.'emit'("set_hll_global '***', %0", S0)
     code.'emit'("   .return ()")
     code.'emit'(".end")
-    S0 = code
-    say S0
+
+   ## initialization stuff
+loop:
+    unless fns goto end
+    P0 = pop fns
+    P1 = _empty_state()
+    setattribute P1, 'code', code # retain previous code
+    _compile_fn(P1, P0)
+    code.'emit'("\n")
+    goto loop
+end:
+    P0 = _empty_state()
+    setattribute P0, 'code', code # retain previous code
+    code = getattribute P0, 'code'
+    code.'emit'(".sub _const_init :anon :init")
+loop1:
+    unless consts goto end1
+    P1 = shift consts
+    _compile_const(P0, P1)
+    goto loop1
+end1:
+    code.'emit'(".return ()")
+    code.'emit'(".end")
+#    S0 = code
+#    say S0
     .return (code)
 .end
  

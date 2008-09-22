@@ -32,21 +32,26 @@
 #    P0() # run the just compiled bytecode
 #    goto loop
 #end:	
-#    say 'Done'
+    ##    say 'Done'
     P0 = getstdin
+    .local pmc out
+    out = getstdout
     P1 = new 'ReadStream'
+    push_eh loop # never give up
 loop:
+    print out, "arc> "
+    out.'flush'()
     S0 = readline P0
 #    P1.input(S0)
 #    P2 = _read(P1)
     #say P2
     #say ''
 #    _tl_compile(P2)
-    say '---'
+#    say '---'
     P1 = _compile(S0)
     P1()
     P2 = get_hll_global '***'
-    print ' -> '
+    #print ' -> '
     say P2
     goto loop
 .end
@@ -76,8 +81,8 @@ file_error:
    .param string src
    .local pmc code
       
-   say "Compiling..."
-   say src
+#   say "Compiling..."
+#   say src
    P1 = new 'ReadStream'
    P1.input(src)
    P0 = _read(P1)
