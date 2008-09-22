@@ -240,11 +240,14 @@ special_or_call:
    S0 = P0
    if S0 == "$closure" goto new_closure
    if S0 == "if" goto if_expr
+   if S0 == "set" goto set_expr
    goto is_call
 new_closure:	# closure creation
    .return _compile_closure(cs, expr, out_reg)
 if_expr:
    .return _compile_if(cs, expr, out_reg)
+set_expr:
+   .return _compile_set(cs, expr, out_reg)
 is_call:
    .local pmc args # array holding function & arguments registers
    args = new 'ResizableStringArray'
@@ -530,6 +533,48 @@ else_part:
    .return ()
 ret_nil:
    code.'emit'("%0 = get_hll_global 'nil'", out_reg)
+   .return ()
+.end
+
+.sub _compile_set
+   .param pmc cs
+   .param pmc expr
+   .param string out_reg
+   .local pmc nil
+   .local pmc code
+   
+   nil = get_hll_global 'nil'
+   code = getattribute cs, 'code'
+   expr = cdr(expr) # throw away 'set
+loop:
+   I0 = issame expr, nil
+   if I0 goto end
+   I0 = len(expr)
+   if I0 < 2 goto error
+   P0 = car(expr) # var to set
+   S0 = typeof P0
+   unless S0 == 'Symbol' goto error # var must be a symbol
+   expr = cdr(expr)
+   P1 = car(expr) # value
+   _compile_expr(cs, P1)
+   S0 = cs.'_pop'()
+   code.'emit'("%0 = %1", out_reg, S0) # return the value
+   P1 = getattribute cs, 'lex'
+   I0 = _lexical(P1, P0)
+   S1 = P0
+   if I0 goto is_lex
+   ## global
+   code.'emit'("set_hll_global '%0', %1", S1, S0)
+   goto next
+is_lex:
+   code.'emit'("store_lex '%0', %1", S1, S0)
+next:	
+   expr = cdr(expr) # advance
+   goto loop
+error:
+   die "Malformed set!"
+   .return ()
+end:	
    .return ()
 .end
 
