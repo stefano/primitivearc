@@ -35,6 +35,6 @@ Roadmap:
     * basic -- done
     * optional and destructuring args
   * ar-call
-  * apply
+  * apply -- done
   * set -- done
   * macros

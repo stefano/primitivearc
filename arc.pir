@@ -8,6 +8,7 @@
    load_bytecode 'arcall.pbc'
    load_bytecode 'compiler.pbc'
    load_bytecode 'read.pbc'
+   load_bytecode 'builtins.pbc'
 .end
 
 .sub _main :main
@@ -38,7 +39,7 @@
     out = getstdout
     P1 = new 'ReadStream'
 loop:
-    push_eh loop # never give up
+    push_eh error # never give up
     print out, "arc> "
     out.'flush'()
     S0 = readline P0
@@ -53,6 +54,10 @@ loop:
     P2 = get_hll_global '***'
     #print ' -> '
     say P2
+    goto loop
+error:
+    .get_results(P2, S0)
+    say S0
     goto loop
 .end
 
