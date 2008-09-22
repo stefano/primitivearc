@@ -152,8 +152,8 @@ loop1:
 end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
-#    S0 = code
-#    say S0
+    #S0 = code
+    #say S0
     .return (code)
 .end
  
@@ -185,10 +185,12 @@ yes:
    .local pmc code
    .local string type
    .local string out_reg
+   .local int apply 
    code = getattribute cs, 'code'
    type = typeof expr
    out_reg = cs.'_push'() # output register
-
+   apply = 0 # normal function call by default
+   
    if type == 'Nil' goto is_nil
    if type == 'T' goto is_t
    if type == 'String' goto str
@@ -243,6 +245,7 @@ special_or_call:
    if S0 == "$closure" goto new_closure
    if S0 == "if" goto if_expr
    if S0 == "set" goto set_expr
+   if S0 == "apply" goto apply_expr
    goto is_call
 new_function:	# function creation
    .return _compile_function(cs, expr, out_reg)
@@ -252,6 +255,10 @@ if_expr:
    .return _compile_if(cs, expr, out_reg)
 set_expr:
    .return _compile_set(cs, expr, out_reg)
+apply_expr:
+   expr = cdr(expr) # cut 'apply
+   apply = 1
+   ## go on with function call code
 is_call:
    .local pmc args # array holding function & arguments registers
    args = new 'ResizableStringArray'
@@ -272,9 +279,23 @@ args_emitted:
    I0 -= 1
    goto args_emitted
 end_args:
+   if apply goto is_apply
    code .= out_reg
-   code .= " = "
-   code.'emit'("arcall(%,)\n", args :flat)
+   code.'emit'(" = arcall(%,)\n", args :flat)
+   .return ()
+is_apply:
+   I0 = args
+   I0 -= 1
+   if I0 == 0 goto no_args # only the function
+   P0 = args[I0] # last argument
+   code.'emit'("%0 = _list_to_array(%0)", P0) # convert to array to flatten
+   code .= out_reg
+   code.'emit'(" = arcall(%, :flat)\n", args :flat)
+   .return ()
+no_args:
+   P0 = args[0]
+   code .= out_reg
+   code.'emit'(" = arcall(%0)", P0)
    .return ()
 .end
 
@@ -423,7 +444,7 @@ norm:
    goto end_if
 rest:
    code.'emit'(".param pmc %0 :slurpy", P4)
-   ## !! we should convert slurpy array to cons list here
+   code.'emit'("%0 = list(%0 :flat)", P4) # !! slow
 end_if:	
    goto loop
 end:

@@ -37,8 +37,8 @@
     .local pmc out
     out = getstdout
     P1 = new 'ReadStream'
-    push_eh loop # never give up
 loop:
+    push_eh loop # never give up
     print out, "arc> "
     out.'flush'()
     S0 = readline P0

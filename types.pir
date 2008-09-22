@@ -148,17 +148,46 @@ final:
    .param pmc elems :slurpy
 
    .local pmc res
+   .local pmc last
    .local pmc iter
-   res = find_global 'nil'
+   .local pmc nil
+   nil = find_global 'nil'
+   last = nil
+   res = nil
    iter = new 'Iterator', elems
 
 start:	
    unless iter goto end
    P0 = shift iter
-   res = cons(P0, res)
+   I0 = issame last, nil
+   if I0 goto first
+   P0 = cons(P0, nil)
+   scdr(last, P0)
+   last = P0
    goto start
-   
+first:
+   last = cons(P0, nil)
+   res = last
+   goto start
 end:	
+   .return (res)
+.end
+
+.sub _list_to_array
+   .param pmc lst
+   .local pmc res
+   .local pmc nil
+   
+   res = new 'ResizablePMCArray'
+   nil = get_hll_global 'nil'
+loop:
+   I0 = issame lst, nil
+   if I0 goto end
+   P0 = car(lst)
+   push res, P0
+   lst = cdr(lst)
+   goto loop
+end:
    .return (res)
 .end
 
