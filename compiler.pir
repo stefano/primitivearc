@@ -115,21 +115,8 @@
    (fns, consts, expr) = _collect_fn_and_consts(expr, P0, P1, 0)
    P0 = _empty_state()
    code = getattribute P0, 'code'
+   code.'emit'(".HLL 'Arc', ''")
    ## initialization stuff
-   code.'emit'(<<"END")
-.sub _main :anon :main
-   load_bytecode 'types.pbc'
-   load_bytecode 'symtable.pbc'
-   load_bytecode 'arcall.pbc'
-   load_bytecode 'compiler.pbc'
-   load_bytecode 'read.pbc'
-END
-    _compile_expr(P0, expr)
-    S0 = P0.'_pop'() # return register
-    code.'emit'("   .return (%0)", S0)
-    code.'emit'(".end")
-    S0 = code
-    say S0
 loop:
     unless fns goto end
     P0 = pop fns
@@ -151,9 +138,25 @@ loop1:
 end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
+
+    ## main function
+    code.'emit'(<<"END")
+.sub _main :anon :init
+##   load_bytecode 'types.pbc'
+##   load_bytecode 'symtable.pbc'
+##   load_bytecode 'arcall.pbc'
+##   load_bytecode 'compiler.pbc'
+##   load_bytecode 'read.pbc'
+END
+    _compile_expr(P0, expr)
+    S0 = P0.'_pop'() # return register
+    ## put return value in global var '***
+    code.'emit'("set_hll_global '***', %0", S0)
+    code.'emit'("   .return ()")
+    code.'emit'(".end")
     S0 = code
     say S0
-    .return ()
+    .return (code)
 .end
  
 ## takes a list of ArgInfo and a symbol
@@ -238,10 +241,13 @@ special_or_call:
    S0 = typeof P0
    unless S0 == 'Symbol' goto is_call
    S0 = P0
+   if S0 == "$function" goto new_function
    if S0 == "$closure" goto new_closure
    if S0 == "if" goto if_expr
    if S0 == "set" goto set_expr
    goto is_call
+new_function:	# function creation
+   .return _compile_function(cs, expr, out_reg)
 new_closure:	# closure creation
    .return _compile_closure(cs, expr, out_reg)
 if_expr:
@@ -471,6 +477,22 @@ not_a_sym_err:
    .return ()
 .end
 
+## compile function creation form
+## ($function code-name)
+.sub _compile_function
+   .param pmc cs
+   .param pmc expr
+   .param string out_reg
+
+   P0 = cdr(expr)
+   P0 = car(P0) # cadr: code-name
+   S0 = P0
+   .local pmc code
+   code = getattribute cs, 'code'
+   code.'emit'("%0 = get_hll_global '%1'\n", out_reg, S0) # get the global Sub
+   .return ()
+.end
+
 ## if form: (if t1 then1 t2 then2 ... else)
 ## TODO: give better names to labels
 .sub _compile_if
@@ -679,6 +701,7 @@ arg_err:
    .param pmc lex # list of lexicals so far
    .param pmc outer # name of outer function
    .param int is_seq # is the list passed a sequence of expressions ?
+   .local pmc old_outer
    .local pmc new_expr
    .local pmc fns
    .local pmc consts
@@ -721,6 +744,7 @@ found1:
    _collect_names(P3, lex) # expand array of declared vars
    setattribute fn, 'lex', lex
    body = cdr(P2)
+   old_outer = outer
    outer = uniq() # name of fn (also the new outer)
    (P4, P5, body) = _collect_fn_and_consts(body, lex, outer, 1)
    _extend(fns, P4)
@@ -731,10 +755,13 @@ found1:
    P3 = cons(P0, P3) # ($fn name (arg1 ...) body)
    setattribute fn, 'expr', P3 # function expression
    push fns, fn
-   ## build ($closure ...) form
+   ## build ($closure ...) or ($function ...) form
+   unless old_outer == "" goto build_it # not outer function?
+   P1 = intern("$function") # build a function, not a closure
+build_it:	
    P2 = get_hll_global 'nil'
    new_expr = cons(outer, P2) # (name)
-   new_expr = cons(P1, new_expr) # ($closure name)
+   new_expr = cons(P1, new_expr) # ($closure|$function name)
    .return (fns, consts, new_expr)
 for_each_init:
    ## call on every element

@@ -37,12 +37,17 @@
     P1 = new 'ReadStream'
 loop:
     S0 = readline P0
-    P1.input(S0)
-    P2 = _read(P1)
-    say P2
-    say ''
-    _tl_compile(P2)
+#    P1.input(S0)
+#    P2 = _read(P1)
+    #say P2
+    #say ''
+#    _tl_compile(P2)
     say '---'
+    P1 = _compile(S0)
+    P1()
+    P2 = get_hll_global '***'
+    print ' -> '
+    say P2
     goto loop
 .end
 
@@ -70,21 +75,16 @@ file_error:
 .sub _compile
    .param string src
    .local pmc code
-   code = new 'CodeString'
-   
+      
    say "Compiling..."
-
-   code.emit(<<"END")
-.sub _main :main :anon
-   say "Hi!"
-   .return ()
-.end
-END
-   
-   say "Result:"
-   say code
+   say src
+   P1 = new 'ReadStream'
+   P1.input(src)
+   P0 = _read(P1)
+   code = _tl_compile(P0)
    
    ## get PIR compiler and compile the emitted PIR code
    P0 = compreg 'PIR'
-   .return P0(code)
+   P1 = P0(code)
+   .return (P1)
 .end
