@@ -132,7 +132,7 @@ END
     say S0
 loop:
     unless fns goto end
-    P0 = shift fns
+    P0 = pop fns
     P1 = _empty_state()
     _compile_fn(P1, P0)
     P0 = getattribute P1, 'code'
