@@ -12,6 +12,12 @@
    .return fn(args :flat)
 .end
 
+.sub arcall :multi(MultiSub)
+   .param pmc fn
+   .param pmc args :slurpy
+   .return fn(args :flat)
+.end
+
 .sub arcall :multi(Cons)
    .param pmc cell
    ## do stuff here
@@ -34,5 +40,9 @@
    .param pmc table
    .param pmc key
    P0 = table[key]
+   if_null P0, ret_nil # not found
+   .return (P0)
+ret_nil:	
+   P0 = get_hll_global 'nil'
    .return (P0)
 .end

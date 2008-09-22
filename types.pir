@@ -233,3 +233,18 @@ end:
    P0 = annotation[1]
    .return (P0)
 .end
+
+.sub table
+   P0 = new 'Hash'
+   .return (P0)
+.end
+
+.sub sref :multi(Hash)
+   .param pmc h
+   .param pmc val
+   .param pmc key
+
+   h[key] = val
+
+   .return (val)
+.end
