@@ -232,6 +232,7 @@ var_ref: # variable reference
    ## ?? problems is ', and it won't appear in a symbol once
    ## ?? quoting is implemented
    code.'emit'("%0 = get_hll_global '%1'", out_reg, expr)
+   _emit_check_defined(code, out_reg, expr)
    .return ()
 lex:
    code.'emit'("%0 = find_lex '%1'", out_reg, expr)
@@ -890,4 +891,18 @@ end:
    .return (1)
 fail:
    .return (0)
+.end
+
+.sub _emit_check_defined
+   .param pmc code
+   .param string reg
+   .param string var_name
+
+   S0 = uniq()
+   code.'emit'("unless_null %0, %1", reg, S0)
+   code.'emit'("S0 = \"Unbound variable: \" . \"%0\"", var_name)
+   code.'emit'("'err'(S0)")
+   code.'emit'("%0:", S0)
+
+   .return ()
 .end

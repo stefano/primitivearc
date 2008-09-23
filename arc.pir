@@ -57,6 +57,8 @@ loop:
     goto loop
 error:
     .get_results(P2, S0)
+    #S1 = P2["stacktrace"]
+    #say P2
     say S0
     goto loop
 .end
