@@ -17,7 +17,7 @@ Roadmap:
     * rep and annotate -- done
   * Call table
     * call table infrastructure -- started
-    * dispatch on type of element in function position
+    * dispatch on type of element in function position -- done
     * defcall -- not in Arc standard. Should be added anyway?
 * Reader
   * Numbers -- done
@@ -35,6 +35,7 @@ Roadmap:
     * basic -- done
     * optional and destructuring args
   * ar-call -- done
+  * tail calls -- done
   * apply -- done
   * set -- done
   * macros -- done

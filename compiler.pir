@@ -153,7 +153,7 @@ end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
     S0 = code
-    say S0
+    #say S0
     .return (code)
 .end
  
