@@ -230,3 +230,53 @@ end:
 
    .return (val)
 .end
+
+.sub sref :multi(String)
+   .param pmc str
+   .param pmc val
+   .param pmc ind
+
+   I0 = find_type 'String'
+   I1 = typeof val
+   unless I0 == I1 goto type_err
+   I0 = find_type 'Integer'
+   I1 = typeof ind
+   unless I0 == I1 goto type_err2
+   S0 = val
+   str[ind] = S0
+   .return (val)
+type_err:
+   .return 'err'("Wrong type passed as value to sref (string)")
+type_err2:
+   .return 'err'("Wrong type passed as index to sref (string)")
+.end
+
+.sub sref :multi(Cons)
+   .param pmc cell
+   .param pmc val
+   .param pmc ind
+   
+   I0 = find_type 'Integer'
+   I1 = typeof ind
+   unless I0 == I1 goto type_err
+   
+   .local pmc nil
+   I0 = ind
+   if I0 < 0 goto neg_index   
+   nil = get_hll_global 'nil'
+loop:
+   I1 = issame cell, nil
+   if I1 goto too_large
+   if I0 == 0 goto end
+   cell = cdr(cell)
+   I0 -= 1
+   goto loop
+end:
+   .return scar(cell, val)
+neg_index:
+   .return 'err'("Negative index!")
+too_large:
+   .return 'err'("Index too large!")   
+type_err:
+   .return 'err'("Wrong type passed as index to sref (cons)")
+.end
