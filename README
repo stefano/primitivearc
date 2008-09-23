@@ -34,7 +34,7 @@ Roadmap:
   * fn 
     * basic -- done
     * optional and destructuring args
-  * ar-call
+  * ar-call -- done
   * apply -- done
   * set -- done
-  * macros
+  * macros -- done

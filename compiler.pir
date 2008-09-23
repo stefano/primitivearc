@@ -152,8 +152,8 @@ loop1:
 end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
-    S0 = code
-    say S0
+    #S0 = code
+    #say S0
     .return (code)
 .end
  
@@ -715,6 +715,7 @@ arg_err:
 ## array together with other informations, transformed in
 ## ($fn ...) forms and returned together with the new expression
 ## also collects constant values (quoted expressions, strings, etc.)
+## Since we're already traversing the program, we macroexpand it
 .sub _collect_fn_and_consts
    .param pmc expr
    .param pmc lex # list of lexicals so far
@@ -745,8 +746,19 @@ arg_err:
    S0 = P0 # conversion
    if S0 == "quote" goto quote_const
    if S0 == "fn" goto found1
+   I0 = _is_mac(expr) # could this be a macro?
+   if I0 goto expand_mac
    #expr = cdr(expr)
    goto for_each_init
+expand_mac:
+   ## macroexpansion
+   S0 = car(expr)
+   P0 = get_hll_global S0 # get the value
+   P0 = rep(P0) # macro function
+   P1 = cdr(expr) # args
+   P1 = _list_to_array(P1)
+   P1 = arcall(P0, P1 :flat) # call the macro
+   .return _collect_fn_and_consts(P1, lex, outer, 0) # call on the result
 found1:	
    ## add one function
    fn = new 'FnInfo'
@@ -856,4 +868,26 @@ loop:
    goto loop
 end:
    .return ()
+.end
+
+## tells if the passed expression refers to a macro
+.sub _is_mac
+   .param pmc expr
+   .local pmc sym
+
+   S0 = typeof expr
+   unless S0 == 'Cons' goto fail
+   sym = car(expr)
+   S0 = typeof sym
+   unless S0 == 'Symbol' goto fail
+   S0 = sym
+   P0 = get_hll_global S0
+   if_null P0, fail # is this a defined global var?
+   S0 = typeof P0
+   unless S0 == 'Tagged' goto fail
+   S0 = P0[0] ## !! should use a more generic 'type function, when available
+   unless S0 == 'mac' goto fail
+   .return (1)
+fail:
+   .return (0)
 .end
