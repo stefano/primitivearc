@@ -275,3 +275,13 @@ end:
    .return (what)
 .end
 
+.sub 'eval'
+   .param pmc what
+   
+   P1 = _tl_compile(what)
+   P0 = compreg 'PIR'
+   P1 = P0(P1)
+   P1()
+   P0 = get_hll_global '***' # !! I don't like this
+   .return (P0)
+.end

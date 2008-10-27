@@ -382,6 +382,16 @@ error:
 
 .sub _read_unquote
    .param pmc rs
+   .local string type
+   
+   type = "unquote"
    rs.get1() # skip ,
-   .return _read_next_with_head(rs, "unquote")
+   S0 = rs.get1()
+   if S0 == '@' goto splice
+   rs.back1()
+   goto go_on
+splice: 
+   type = "splice"
+go_on:
+   .return _read_next_with_head(rs, type)
 .end
