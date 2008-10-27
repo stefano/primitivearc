@@ -79,7 +79,6 @@ zero_args:
       
       P0 = new 'Integer'
       P0 = i1 .op i2
-
       .return (P0)
    .end
 
@@ -219,3 +218,60 @@ yes:
    P0 = get_hll_global 't'
    .return (P0)
 .end
+
+.sub '+' :multi(Cons, Cons)
+   .param pmc a
+   .param pmc b
+   .local pmc nil
+   
+   nil = get_hll_global 'nil'
+   P0 = nil
+loop:
+   I0 = issame a, nil
+   if I0 goto copy_b
+   P1 = car(a)
+   P0 = cons(P1, P0)
+   a = cdr(a)
+   goto loop
+copy_b:
+   I0 = issame b, nil
+   if I0 goto end
+   P1 = car(b)
+   P0 = cons(P1, P0)
+   b = cdr(b)
+   goto copy_b
+end:
+   .return (P0)
+.end
+
+.sub '+' :multi(String, String)
+   .param pmc s1
+   .param pmc s2
+
+   S0 = s1
+   S1 = s2
+   S0 .= S1
+
+   P0 = new 'String'
+   P0 = S0
+   .return (P0)
+.end
+
+.include 'interpinfo.pasm' # for .INTERPINFO_CURRENT_CONT
+
+.sub 'ccc'
+   .param pmc f
+
+   interpinfo P0, .INTERPINFO_CURRENT_CONT
+
+   .return f(P0)
+.end
+
+.sub 'prn'
+   .param pmc what
+
+   say what
+
+   .return (what)
+.end
+

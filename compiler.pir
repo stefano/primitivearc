@@ -153,7 +153,7 @@ end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
     S0 = code
-    #say S0
+    say S0
     .return (code)
 .end
  
@@ -283,13 +283,31 @@ args_emitted:
    I0 -= 1
    goto args_emitted
 end_args:
+   .local string call_fn
+   call_fn = "arcall"
+   I0 = args
+   I0 -= 1
+   if I0 == 1 goto call1
+   if I0 == 2 goto call2
+   goto do_call
+call1:
+   call_fn = "arcall1"
+   goto do_call
+call2:
+   call_fn = "arcall2"
+   goto do_call
+do_call:	
    if apply goto is_apply
    if is_tail goto tail_call
    code .= out_reg
-   code.'emit'(" = arcall(%,)\n", args :flat)
+   code .= " = "
+   code .= call_fn
+   code.'emit'("(%,)\n", args :flat)
    .return ()
 tail_call:
-   code.'emit'(".return arcall(%,)\n", args :flat)
+   code .= ".return "
+   code .= call_fn
+   code.'emit'("(%,)\n", args :flat)
    .return ()
 is_apply:
    I0 = args
@@ -299,19 +317,27 @@ is_apply:
    code.'emit'("%0 = _list_to_array(%0)", P0) # convert to array to flatten
    if is_tail goto tail_apply
    code .= out_reg
-   code.'emit'(" = arcall(%, :flat)\n", args :flat)
+   code .= " = "
+   code .= call_fn
+   code.'emit'("(%, :flat)\n", args :flat)
    .return ()
 tail_apply:
-   code.'emit'(".return arcall(%, :flat)\n", args :flat)
+   code .= ".return "
+   code .= call_fn   
+   code.'emit'("(%, :flat)\n", args :flat)
    .return ()
 no_args:
    P0 = args[0]
    if is_tail goto tail_no_args
    code .= out_reg
-   code.'emit'(" = arcall(%0)", P0)
+   code .= " = "
+   code .= call_fn
+   code.'emit'("(%0)", P0)
    .return ()
 tail_no_args:
-   code.'emit'(".return arcall(%0)", P0)
+   code .= ".return "
+   code .= call_fn
+   code.'emit'("(%0)", P0)
    .return ()
 .end
 

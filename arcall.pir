@@ -18,6 +18,39 @@
    .return fn(args :flat)
 .end
 
+.sub arcall1 :multi(Sub)
+   .param pmc fn
+   .param pmc arg
+   .return fn(arg)
+.end
+
+.sub arcall1 :multi(MultiSub)
+   .param pmc fn
+   .param pmc arg
+   .return fn(arg)
+.end
+
+.sub arcall2 :multi(Sub)
+   .param pmc fn
+   .param pmc arg1
+   .param pmc arg2
+   .return fn(arg1, arg2)
+.end
+
+.sub arcall2 :multi(MultiSub)
+   .param pmc fn
+   .param pmc arg1
+   .param pmc arg2
+   .return fn(arg1, arg2)
+.end
+
+.sub arcall1 :multi(Continuation)
+   .param pmc cc
+   .param pmc arg1
+
+   .return cc(arg1)
+.end
+
 .sub arcall :multi(Cons)
    .param pmc cell
    .param pmc pos
