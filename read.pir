@@ -68,14 +68,17 @@
    .return (self)
 .end
 
-
-## go back one character
-.sub back1 :method
+.sub peek1 :method
    P0 = getattribute self, 'position'
-   P0 -= 1
-   setattribute self, 'position', P0
-
-   .return ()
+   I0 = P0
+   S0 = self
+   I1 = length S0
+   if I0 >= I1 goto end
+   S0 = self[I0]
+   .return (S0)
+end:
+   P0 = get_hll_global 'nil'
+   .return (P0)
 .end
 
 ## get next character and advance position
@@ -131,13 +134,12 @@ end:
    tbl = get_hll_global 'read-table*'
 start:	
    _skip_separators(rs)
-   S0 = rs.get1()
+   S0 = rs.peek1()
    unless S0 == ";" goto keep_going
    ## handle a comment
    _skip_line(rs)
    goto start
 keep_going:
-   rs.back1()
    P0 = tbl[S0]
    I0 = defined P0
    unless I0 goto default
@@ -158,11 +160,12 @@ loop:
    .param pmc rs
 
 loop:	
-   S0 = rs.get1()
+   S0 = rs.peek1()
    I0 = index separators, S0
-   unless I0 == -1 goto loop
-   rs.back1() # put back non-separator char
-
+   if I0 == -1 goto end
+   rs.get1() # throw away
+   goto loop
+end:    
    .return ()
 .end
 
@@ -173,16 +176,16 @@ loop:
    result = ""
    
 loop:
-   S0 = rs.get1()
+   S0 = rs.peek1()
    I0 = index separators, S0
-   unless I0 == -1 goto end
+   unless I0 == -1 goto end # separator may be safely left in the stream
    I0 = index special, S0
-   unless I0 == -1 goto retain1 # special character will be needed later
+   unless I0 == -1 goto end # special character will be needed later
    result .= S0
+   rs.get1() # advance
    goto loop
-retain1:
-   rs.back1()
 end:
+   ## !! should handle null symbol?
    ## handle the constants t & nil
    if result == "t" goto ret_t
    if result == "nil" goto ret_nil
@@ -307,27 +310,29 @@ error:
    .param string ter
   
    _skip_separators(rs)
-   S0 = rs.get1()
+   S0 = rs.peek1()
    if S0 == ter goto end # list terminated
-   rs.back1()
    P0 = _read(rs) # read the car
    _skip_separators(rs)
-   S0 = rs.get1()
+   S0 = rs.peek1()
    if S0 == "." goto dotted_list # a dotted list ( --- . - )
    if S0 == ter goto ter_found
-   rs.back1() # start of another element, put back its first char
+   ## start of another element
    P1 = _read_list_with_ter(rs, ter)
    .return cons(P0, P1)
 dotted_list:
+   rs.get1() # throw away '.'
    P1 = _read(rs) # read the cdr
    _skip_separators(rs)
    S0 = rs.get1()
    unless S0 == ter goto error # only one object may follow the dot
    .return cons(P0, P1)
 ter_found:
+   rs.get1() # throw away terminator
    P1 = get_hll_global 'nil'
    .return cons(P0, P1)
 end:
+   rs.get1() # throw away terminator 
    P0 = get_hll_global 'nil'
    .return (P0)
 error:
@@ -386,12 +391,10 @@ error:
    
    type = "unquote"
    rs.get1() # skip ,
-   S0 = rs.get1()
-   if S0 == '@' goto splice
-   rs.back1()
-   goto go_on
-splice: 
+   S0 = rs.peek1()
+   unless S0 == '@' goto go_on
    type = "splice"
+   rs.get1() # throw away '@'
 go_on:
    .return _read_next_with_head(rs, type)
 .end

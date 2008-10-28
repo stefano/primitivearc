@@ -25,7 +25,13 @@
    ## Annotated
 
    P0 = subclass 'Array', 'Tagged'
-   
+
+   ## I/O ports
+
+   P0 = subclass 'ParrotIO', 'Inport'
+   addattribute P0, 'buffer'
+   P0 = subclass 'ParrotIO', 'Outport'
+
    .return ()
 .end
 
@@ -92,6 +98,24 @@ end:
    S0 .= S1
    S0 .= ")"
    .return (S0)
+.end
+
+.namespace ['Inport']
+
+.sub __get_string :method
+   .return ("#<input port>")
+.end
+
+## compatibility with ReadStream
+
+#.sub back1 :method
+#   P0 = getattribute self, 'buffer'
+#   push P0, 
+
+.namespace ['Outport']
+
+.sub __get_string :method
+   .return ("#<output port>")
 .end
 
 ## functions accessible to the user
