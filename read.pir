@@ -98,33 +98,32 @@ stream_end:
    .return (P0)
 .end
 
-## get characters until end-of-string or a character in the given list is found
-.sub get_upto :method
+.namespace [ ]
+
+## get characters until end-of-stream or a character in the given list is found
+.sub 'get_upto'
+   .param pmc rs
    .param string stoppers # tells if we need to stop reading
    .local string res
+   .local pmc nil
 
+   nil = get_hll_global 'nil'
    res = ""
    
-   P0 = getattribute self, 'position'
-   I0 = P0
-   S0 = self
-   I1 = length S0
-   if I0 >= I1 goto end
 loop:
-   S0 = self[I0]
-   I2 = index stoppers, S0
-   unless I2 == -1 goto end # pos won't be incremented
+   P0 = rs.peek1()
+   I0 = issame nil, P0
+   if I0 goto end
+   S0 = P0
+   I0 = index stoppers, S0
+   unless I0 == -1 goto end
    res .= S0
-   I0 += 1
+   rs.get1()
    goto loop
 end:
-   P0 = I0
-   setattribute self, 'position', P0
    .return (res)
 .end
    
-.namespace [ ]
-
 ## main reader function
 ## !! doesn't handle EOF yet !!
 .sub _read
@@ -165,7 +164,7 @@ loop:
    if I0 == -1 goto end
    rs.get1() # throw away
    goto loop
-end:    
+end:
    .return ()
 .end
 
@@ -231,7 +230,7 @@ fail:
    .local int from
 
    ## read it
-   S0 = rs.get_upto(specandsep)
+   S0 = 'get_upto'(rs, specandsep)
    ## if it is parsed as a number, from will be 0 if it is positive,
    ## 1 if it isn't: it will mark the first digit position
    from = index S0, "-"

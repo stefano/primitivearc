@@ -29,9 +29,10 @@
    ## I/O ports
 
    P0 = subclass 'ParrotIO', 'Inport'
-   addattribute P0, 'buffer'
+   addattribute P0, 'stream'
    P0 = subclass 'ParrotIO', 'Outport'
-
+   addattribute P0, 'stream'
+   
    .return ()
 .end
 
@@ -108,9 +109,27 @@ end:
 
 ## compatibility with ReadStream
 
-#.sub back1 :method
-#   P0 = getattribute self, 'buffer'
-#   push P0, 
+.sub peek1 :method
+   P0 = getattribute self, 'stream'
+   I0 = P0.'eof'()
+   if I0 goto end
+   S0 = peek P0
+   .return (S0)
+end:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+
+.sub get1 :method
+   P0 = getattribute self, 'stream'
+   I0 = P0.'eof'()
+   if I0 goto end
+   S0 = read P0, 1
+   .return (S0)
+end:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
 
 .namespace ['Outport']
 

@@ -290,16 +290,23 @@ end:
 
 .sub 'stdin'
    P0 = getstdin
-   .return (P0)
+   P1 = new 'Inport'
+   setattribute P1, 'stream', P0
+   .return (P1)
 .end
 
 .sub 'readc'
    .param pmc inport
-
-	S0 = read inport, 1
+   
+   P0 = getattribute inport, 'stream'
+   S0 = read P0, 1
    P0 = new 'String'
-	P0 = S0
-
-	.return (P0)
+   P0 = S0
+   
+   .return (P0)
 .end
 
+.sub 'read'
+   .param pmc inport
+   .return _read(inport)
+.end
