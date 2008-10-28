@@ -285,3 +285,21 @@ end:
    P0 = get_hll_global '***' # !! I don't like this
    .return (P0)
 .end
+
+## I/O
+
+.sub 'stdin'
+   P0 = getstdin
+   .return (P0)
+.end
+
+.sub 'readc'
+   .param pmc inport
+
+	S0 = read inport, 1
+   P0 = new 'String'
+	P0 = S0
+
+	.return (P0)
+.end
+
