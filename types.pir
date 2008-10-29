@@ -28,11 +28,10 @@
 
    ## I/O ports
 
-   P0 = subclass 'ParrotIO', 'Inport'
+   P0 = newclass 'Inport'
    addattribute P0, 'stream'
-   P0 = subclass 'ParrotIO', 'Outport'
+   P0 = newclass 'Outport'
    addattribute P0, 'stream'
-   
    .return ()
 .end
 
@@ -105,6 +104,12 @@ end:
 
 .sub __get_string :method
    .return ("#<input port>")
+.end
+
+.namespace ['Outport']
+
+.sub __get_string :method
+   .return ("#<output port>")
 .end
 
 ## compatibility with ReadStream

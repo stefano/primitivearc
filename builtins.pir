@@ -295,18 +295,110 @@ end:
    .return (P1)
 .end
 
+.sub 'stdout'
+   P0 = getstdout
+   P1 = new 'Outport'
+   setattribute P1, 'stream', P0
+   .return (P1)
+.end
+
+.sub 'stderr'
+   P0 = getstderr
+   P1 = new 'Outport'
+   setattribute P1, 'stream', P0
+   .return (P1)
+.end
+
+.sub 'infile'
+   .param pmc fname
+   S0 = fname
+   P0 = new 'Inport'
+   P1 = open S0, '<'
+   unless P1 goto error
+   setattribute P0, 'stream', P1
+   .return (P0)
+error:
+   S0 = "Can't open file: "
+   S1 = fname
+   S0 .= S1
+   'err'(S0)
+.end
+
+.sub 'close'
+   .param pmc port
+   
+   P0 = getattribute port, 'stream'   
+   close P0
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+
 .sub 'readc'
    .param pmc inport
    
    P0 = getattribute inport, 'stream'
+   unless P0 goto eof
    S0 = read P0, 1
    P0 = new 'String'
    P0 = S0
    
    .return (P0)
+eof:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+
+.sub 'readb'
+   .param pmc inport
+   .return 'readc'(inport)
 .end
 
 .sub 'read'
    .param pmc inport
    .return _read(inport)
+.end
+
+## this is actually write-string...
+.sub 'writec'
+   .param pmc c
+   .param pmc outport
+   
+   P0 = getattribute outport, 'stream'
+   S0 = c
+   print P0, S0
+   
+   .return (c)
+.end
+
+.sub 'writeb'
+   .param pmc c
+   .param pmc outport
+   .return 'writec'(c, outport)
+.end
+
+.sub 'write'
+   .param pmc what
+   .param pmc outport
+
+   S1 = what # conversion
+   S0 = typeof what
+   unless S0 == 'String' goto go_on
+   S0 = "\""
+   S0 .= S1
+   S0 .= "\""
+   S1 = S0
+go_on:
+   P0 = getattribute outport, 'stream'
+   print P0, S1
+   .return (what)
+.end
+
+.sub 'disp'
+   .param pmc what
+   .param pmc outport
+
+   S0 = what # conversion
+   P0 = getattribute outport, 'stream'
+   print P0, S0
+   .return (what)
 .end
