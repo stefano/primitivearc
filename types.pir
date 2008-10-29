@@ -106,12 +106,6 @@ end:
    .return ("#<input port>")
 .end
 
-.namespace ['Outport']
-
-.sub __get_string :method
-   .return ("#<output port>")
-.end
-
 ## compatibility with ReadStream
 
 .sub peek1 :method
