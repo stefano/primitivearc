@@ -51,7 +51,7 @@
    .return cc(arg1)
 .end
 
-.sub arcall :multi(Cons)
+.sub arcall1 :multi(Cons)
    .param pmc cell
    .param pmc pos
    .local pmc nil
@@ -75,7 +75,7 @@ too_large:
    .return 'err'("Index too large!")
 .end
 
-.sub arcall :multi(String)
+.sub arcall1 :multi(String)
    .param pmc str
    .param pmc pos
    P0 = new 'String'
@@ -90,7 +90,7 @@ too_large:
 ##   .return ()
 ##.end
 
-.sub arcall :multi(Hash)
+.sub arcall1 :multi(Hash)
    .param pmc table
    .param pmc key
    ## !! Parrot transforms key in a string to make the hash
