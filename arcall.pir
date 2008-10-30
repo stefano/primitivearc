@@ -105,3 +105,22 @@ ret_nil:
    P0 = get_hll_global 'nil'
    .return (P0)
 .end
+
+## catch everything
+.macro call_error(name, arg_list)
+   .sub .name :multi(PMC)
+      .param pmc what
+      .arg_list
+      
+      P0 = new 'String'
+      P0 = "Can't call a "
+      S0 = typeof what
+      P0 .= S0
+      .return 'err'(P0)
+   .end
+.endm
+
+.call_error(arcall1, {.param pmc arg1})
+.call_error(arcall2, {.param pmc arg1
+                      .param pmc arg2})
+.call_error(arcall, {.param pmc args :slurpy})
