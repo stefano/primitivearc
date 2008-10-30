@@ -68,6 +68,17 @@
    .return (self)
 .end
 
+.sub is_eof :method
+   P0 = getattribute self, 'position'
+   I0 = P0
+   S0 = self
+   I1 = length S0
+   if I0 < I1 goto false
+   .return (1)
+false:
+   .return (0)
+.end
+
 .sub peek1 :method
    P0 = getattribute self, 'position'
    I0 = P0
@@ -125,7 +136,6 @@ end:
 .end
    
 ## main reader function
-## !! doesn't handle EOF yet !!
 .sub _read
    .param pmc rs
    .local pmc tbl
@@ -133,6 +143,8 @@ end:
    tbl = get_hll_global 'read-table*'
 start:	
    _skip_separators(rs)
+   I0 = rs.'is_eof'()
+   if I0 goto eof_found
    S0 = rs.peek1()
    unless S0 == ";" goto keep_going
    ## handle a comment
@@ -146,6 +158,9 @@ keep_going:
 default:
    ## if the character isn't present in the read table, read a symbol
    .return _read_symbol(rs)
+eof_found:      
+   P0 = new 'Eof'
+   .return (P0)
 .end
 
 .sub _skip_line
@@ -163,6 +178,8 @@ loop:
    I0 = index separators, S0
    if I0 == -1 goto end
    rs.get1() # throw away
+   I0 = rs.is_eof()
+   if I0 goto end
    goto loop
 end:
    .return ()

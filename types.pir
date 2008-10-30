@@ -32,6 +32,9 @@
    addattribute P0, 'stream'
    P0 = newclass 'Outport'
    addattribute P0, 'stream'
+
+   P0 = newclass 'Eof'
+   
    .return ()
 .end
 
@@ -108,6 +111,15 @@ end:
 
 ## compatibility with ReadStream
 
+.sub is_eof :method
+   P0 = getattribute self, 'stream'
+   I0 = P0.'eof'()
+   if I0 goto true
+   .return (0)
+true:
+   .return (1)
+.end
+
 .sub peek1 :method
    P0 = getattribute self, 'stream'
    I0 = P0.'eof'()
@@ -134,6 +146,12 @@ end:
 
 .sub __get_string :method
    .return ("#<output port>")
+.end
+
+.namespace ['Eof']
+
+.sub __get_string :method
+   .return ("#<eof>")
 .end
 
 ## functions accessible to the user
@@ -322,3 +340,11 @@ too_large:
 type_err:
    .return 'err'("Wrong type passed as index to sref (cons)")
 .end
+
+.sub 'type'
+   .param pmc what
+   S0 = typeof what
+   downcase S0
+   .return 'intern'(S0)
+.end
+

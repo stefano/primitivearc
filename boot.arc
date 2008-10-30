@@ -11,6 +11,10 @@
 
 (set no (fn (x) (if x nil t)))
 
+(set atom (fn (x) (no (is (type x) 'cons))))
+(set acons (fn (x) (is (type x) 'cons)))
+(set cadr [car (cdr _)])
+
 (set let 
   (annotate 'mac (fn (x y . bd) (list (cons 'fn (cons (list x) bd)) y))))
 
@@ -34,18 +38,19 @@
     (if (is level 0) x
         (atom x) (list 'quote x)
         (and (is level 1) (is (car x) 'unquote))
-          (eval-qq (cadr x) (- level 1)))
+          (eval-qq (cadr x) (- level 1))
         (is (car x) 'unquote)
           (list 'unquote (eval-qq (cadr x) (- level 1)))
         (and (is level 1) (is (car x) 'splice))
           (list '__to-splice (eval-qq (cadr x) (- level 1)))
         (is (car x) 'splice)
           (list 'splice (eval-qq (cadr x) (- level 1)))
-        (is (car x) 'quasiquote) 
+        (is (car x) 'quasiquote)
           (list 'quasiquote (eval-qq (cadr x) (+ level 1)))
-        (cons 'list (map1 [eval-qq _ level] x))))
+        (cons 'list (map1 [eval-qq _ level] x)))))
 
 (set quasiquote 
   (annotate 'mac 
     (fn (x)
-      (splice (eval-qq x 1)))))
+      (splice (eval-qq x 1) nil))))
+

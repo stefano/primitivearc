@@ -29,6 +29,13 @@ end:
    .return (P0)
 .end
 
+.sub len :multi(Nil)
+   .param pmc thenil
+   P0 = new 'Integer'
+   P0 = 0
+   .return (P0)
+.end
+
 .sub len :multi(Hash)
    .param pmc h
 
@@ -401,4 +408,19 @@ go_on:
    P0 = getattribute outport, 'stream'
    print P0, S0
    .return (what)
+.end
+
+.sub 'load'
+   .param pmc file
+
+   P0 = 'infile'(file)
+   P2 = get_hll_global 'nil'
+loop:
+   P1 = 'read'(P0)
+   S0 = typeof P1
+   if S0 == 'Eof' goto end
+   P2 = 'eval'(P1)
+   goto loop
+end:
+   .return (P2)
 .end
