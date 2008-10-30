@@ -2,11 +2,24 @@
 
 .HLL 'Arc', ''
 
+.include 'interpinfo.pasm' # for .INTERPINFO_CURRENT_CONT
+
 .sub err
    .param pmc what
+   .local string msg
+   msg = "\nWithin "
    P0 = new 'String'
    P0 = "Error: "
    P0 .= what
+   ## construct the backtrace
+   P1 = interpinfo .INTERPINFO_CURRENT_CONT
+loop:
+   P0 .= msg
+   msg = "\nCalled by "
+   S0 = P1.'caller'()
+   P0 .= S0
+   P1 = P1.'continuation'()
+   if P1 goto loop
    die P0
    .return (P0)
 .end
@@ -263,8 +276,6 @@ end:
    P0 = S0
    .return (P0)
 .end
-
-.include 'interpinfo.pasm' # for .INTERPINFO_CURRENT_CONT
 
 .sub 'ccc'
    .param pmc f
