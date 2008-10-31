@@ -53,4 +53,3 @@
   (annotate 'mac 
     (fn (x)
       (splice (eval-qq x 1) nil))))
-

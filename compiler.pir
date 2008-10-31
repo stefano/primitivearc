@@ -152,8 +152,8 @@ loop1:
 end1:
     code.'emit'(".return ()")
     code.'emit'(".end")
-#    S0 = code
-#    say S0
+    #S0 = code
+    #say S0
     .return (code)
 .end
  
@@ -201,7 +201,10 @@ yes:
    if type == 'Cons' goto special_or_call
 
    ## unknown expression
-   die "Unknown expression"
+   S0 = "Unknown expression: "
+   S1 = expr
+   S0 .= S1
+   'err'(S0)
    .return ()
 
 is_nil:

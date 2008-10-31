@@ -239,31 +239,61 @@ yes:
    .return (P0)
 .end
 
+## copy a list
+## return head of the list and the last cons cell
+.sub 'copy'
+   .param pmc l
+   .local pmc nil
+   .local pmc res
+   .local pmc last
+
+   nil = find_global 'nil'
+   last = nil
+   res = nil
+start:
+   I0 = issame nil, l
+   if I0 goto end
+   P0 = car(l)
+   l = cdr(l)
+   I0 = issame last, nil
+   if I0 goto first
+   P0 = cons(P0, nil)
+   scdr(last, P0)
+   last = P0
+   goto start
+first:
+   last = cons(P0, nil)
+   res = last
+   goto start
+end:	
+   .return (res, last)
+.end
+
+.sub '+' :multi(Nil, Cons)
+   .param pmc a
+   .param pmc b
+   
+   .return 'copy'(b)
+.end
+
+.sub '+' :multi(Cons, Nil)
+   .param pmc a
+   .param pmc b
+   
+   .return 'copy'(a)
+.end
+
 .sub '+' :multi(Cons, Cons)
    .param pmc a
    .param pmc b
    .local pmc nil
-   
-   nil = get_hll_global 'nil'
-   P0 = nil
-loop:
-   I0 = issame a, nil
-   if I0 goto copy_b
-   P1 = car(a)
-   P0 = cons(P1, P0)
-   a = cdr(a)
-   goto loop
-copy_b:
-   I0 = issame b, nil
-   if I0 goto end
-   P1 = car(b)
-   P0 = cons(P1, P0)
-   b = cdr(b)
-   goto copy_b
-end:
+
+   (P0, P1) = 'copy'(a)
+   P2 = 'copy'(b)
+   scdr(P1, P2)
    .return (P0)
 .end
-
+   
 .sub '+' :multi(String, String)
    .param pmc s1
    .param pmc s2

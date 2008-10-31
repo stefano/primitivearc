@@ -344,7 +344,7 @@ type_err:
 .sub 'type'
    .param pmc what
    S0 = typeof what
-   downcase S0
+   S0 = downcase S0
    .return 'intern'(S0)
 .end
 
