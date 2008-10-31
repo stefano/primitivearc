@@ -68,12 +68,13 @@
    .return (self)
 .end
 
+## signals eof only _after_ reading one char beyond the last
 .sub is_eof :method
    P0 = getattribute self, 'position'
    I0 = P0
    S0 = self
    I1 = length S0
-   if I0 < I1 goto false
+   if I0 <= I1 goto false
    .return (1)
 false:
    .return (0)

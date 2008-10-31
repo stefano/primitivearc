@@ -357,19 +357,40 @@ end:
    .return (P1)
 .end
 
-.sub 'infile'
+.sub '_open_file'
    .param pmc fname
+   .param pmc io_obj
+   .param string direction
+
    S0 = fname
-   P0 = new 'Inport'
-   P1 = open S0, '<'
-   unless P1 goto error
-   setattribute P0, 'stream', P1
-   .return (P0)
+   P0 = open S0, direction
+   unless P0 goto error
+   setattribute io_obj, 'stream', P0
+   .return (io_obj)
 error:
    S0 = "Can't open file: "
    S1 = fname
    S0 .= S1
    'err'(S0)
+.end
+
+.sub 'infile'
+   .param pmc fname
+   P0 = new 'Inport'
+   .return '_open_file'(fname, P0, '<')
+.end
+
+.sub 'outfile'
+   .param pmc fname
+   P0 = new 'Outport'
+   .return '_open_file'(fname, P0, '>')
+.end
+
+.sub 'inside'
+   .param pmc str
+   P0 = new 'ReadStream'
+   P0.'input'(str)
+   .return (P0)
 .end
 
 .sub 'close'
@@ -383,22 +404,17 @@ error:
 
 .sub 'readc'
    .param pmc inport
-   
-   P0 = getattribute inport, 'stream'
-   unless P0 goto eof
-   S0 = read P0, 1
-   P0 = new 'String'
-   P0 = S0
-   
-   .return (P0)
-eof:
-   P0 = get_hll_global 'nil'
-   .return (P0)
+   .return inport.'get1'()
 .end
-
+   
 .sub 'readb'
    .param pmc inport
    .return 'readc'(inport)
+.end
+
+.sub 'peekc'
+   .param pmc inport
+   .return inport.'peek1'()
 .end
 
 .sub 'read'

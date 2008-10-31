@@ -122,9 +122,9 @@ true:
 
 .sub peek1 :method
    P0 = getattribute self, 'stream'
+   S0 = peek P0
    I0 = P0.'eof'()
    if I0 goto end
-   S0 = peek P0
    .return (S0)
 end:
    P0 = get_hll_global 'nil'
@@ -133,9 +133,9 @@ end:
 
 .sub get1 :method
    P0 = getattribute self, 'stream'
+   S0 = read P0, 1
    I0 = P0.'eof'()
    if I0 goto end
-   S0 = read P0, 1
    .return (S0)
 end:
    P0 = get_hll_global 'nil'
