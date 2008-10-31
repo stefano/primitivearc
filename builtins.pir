@@ -393,6 +393,19 @@ error:
    .return (P0)
 .end
 
+.sub 'pipe-from'
+   .param pmc cmd
+   P0 = new 'Inport'
+   .return '_open_file'(cmd, P0, '-|')
+.end
+
+## not in Arc2
+.sub 'pipe-to'
+   .param pmc cmd
+   P0 = new 'Outport'
+   .return '_open_file'(cmd, P0, '|-')
+.end
+
 .sub 'close'
    .param pmc port
    
@@ -481,3 +494,61 @@ loop:
 end:
    .return (P2)
 .end
+
+.sub 'system'
+   .param pmc cmd
+   S0 = cmd
+   I0 = spawnw S0
+   P0 = new 'Integer'
+   P0 = I0
+   .return (P0)
+.end
+
+.sub 'dir'
+   .param pmc path
+   S0 = path
+   P0 = new 'OS'
+   P0 = P0.'readdir'(S0)
+   .return 'list'(P0 :flat)
+.end
+
+.sub 'rmfile'
+   .param pmc path
+   S0 = path
+   P0 = new 'OS'
+   push_eh error
+   P0.'rm'(path)
+   pop_eh
+   P0 = get_hll_global 'nil'
+   .return (P0)
+error:
+   .get_results(P0)
+   .return 'err'(P0)
+.end
+
+.sub 'file-exists'
+   .param pmc path
+   S0 = path
+   I0 = stat S0, 0
+   if I0 goto true
+   P0 = get_hll_global 'nil'
+   .return (P0)
+true:
+   P0 = get_hll_global 't'
+   .return (P0)
+.end
+
+.sub 'dir-exists'
+   .param pmc path
+   S0 = path
+   I0 = stat S0, 0
+   unless I0 goto false
+   I0 = stat S0, 2
+   unless I0 goto false
+   P0 = get_hll_global 't'
+   .return (P0)
+false:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+
