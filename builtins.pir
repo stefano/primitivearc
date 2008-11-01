@@ -75,8 +75,7 @@ end:
    ## default sub called if the others fail to match
    .sub .name :multi()
       .param pmc args :slurpy
-      
-      P0 = new 'Integer'
+
       P1 = new 'Iterator', args
       unless P1 goto zero_args
       P0 = shift P1
@@ -88,59 +87,48 @@ loop:
 end:
       .return (P0)
 zero_args:
-      P0 = new 'Integer'
-      P0 = 0
-      .return (P0)
+      .return (0)
    .end
 
    .sub .name :multi(Integer, Integer)
-      .param pmc i1
-      .param pmc i2
-      
-      P0 = new 'Integer'
-      P0 = i1 .op i2
-      .return (P0)
+      .param int i1
+      .param int i2
+      I0 = i1 .op i2
+      .return (I0)
    .end
-
    
    .sub .name :multi(Integer, Float)
-      .param pmc i1
-      .param pmc i2
-      
-      P0 = new 'Float'
-      P0 = i1 .op i2
-
-      .return (P0)
+      .param int i1
+      .param num i2
+      N0 = i1 .op i2
+      .return (N0)
    .end
 
    .sub .name :multi(Float, Integer)
-      .param pmc i1
-      .param pmc i2
-      
-      P0 = new 'Float'
-      P0 = i1 .op i2
-
-      .return (P0)
+      .param num i1
+      .param int i2
+      N0 = i1 .op i2
+      .return (N0)
    .end
 
    .sub .name  :multi(Float, Float)
-      .param pmc i1
-      .param pmc i2
-      
-      P0 = new 'Float'
-      P0 = i1 .op i2
-
+      .param num i1
+      .param num i2
+      N0 = i1 .op i2
       .return (P0)
    .end
 
-   .sub .name :multi(PMC)
-     .param pmc i
-     P0 = new 'Integer'
-     P0 = 0
-     P0 = P0 .op i
-     .return (P0)
+   .sub .name :multi(Integer)
+     .param int i
+     I0 = 0 .op i
+     .return (I0)
   .end
 
+  .sub .name :multi(Float)
+     .param num i
+     N0 = 0 .op i
+     .return (N0)
+  .end
 
 .endm
 
@@ -150,30 +138,23 @@ zero_args:
 .defmathop('/', /)
 
 .sub mod
-   .param pmc a
-   .param pmc b
-   P0 = new 'Integer'
-   P0 = a / b
-   I0 = P0
-   P0 = I0
-   .return (P0)
+   .param int a
+   .param int b
+   I0 = a / b
+   .return (I0)
 .end
 
 .sub expt
-   .param pmc a
-   .param pmc b
-   P0 = new 'Integer'
-   P0 = pow a, b
-   .return (P0)
+   .param num a
+   .param num b
+   N0 = pow a, b
+   .return (N0)
 .end
 
 .sub 'sqrt'
-   .param pmc a
-   N0 = a
-   N0 = sqrt N0
-   P0 = new 'Float'
-   P0 = N0
-   .return (P0)   
+   .param num a
+   N0 = sqrt a
+   .return (N0)
 .end
 
 .sub is :multi()
