@@ -239,6 +239,46 @@ yes:
    .return (P0)
 .end
 
+.macro defcmp(name, op, t1, t2, t3)
+   .sub .name :multi(.t1, .t2)
+      .param .t3 n1
+      .param .t3 n2
+      
+      if n1 .op n2 goto true
+      P0 = get_hll_global 'nil'
+      .return (P0)
+true:
+      P0 = get_hll_global 't'
+      .return (P0)   
+   .end
+.endm
+
+.macro wcmp(name, op)
+   .defcmp(.name, .op, String, String, string)
+   .defcmp(.name, .op, Integer, Integer, int)
+   .defcmp(.name, .op, Integer, Float, num)
+   .defcmp(.name, .op, Float, Integer, num)
+   .defcmp(.name, .op, Float, Float, num)
+
+   .sub .name :multi(_, _)
+      .param pmc a1
+      .param pmc a2
+      
+      S0 = "Can't compare "
+      S1 = typeof a1
+      S0 .= S1
+      S0 .= " and "
+      S1 = typeof a2
+      S0 .= S1
+      'err'(S0)
+      P0 = get_hll_global 'nil'
+      .return(P0)
+   .end
+.endm
+
+.wcmp('<', <)
+.wcmp('>', >)
+
 ## copy a list
 ## return head of the list and the last cons cell
 .sub 'copy'
