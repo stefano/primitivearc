@@ -328,6 +328,13 @@ end:
    .return (P0)
 .end
 
+.sub 'rand'
+   .param int max
+   P0 = new 'Random'
+   I0 = P0[max]
+   .return (I0)
+.end
+
 .sub 'ccc'
    .param pmc f
 
