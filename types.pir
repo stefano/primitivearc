@@ -30,9 +30,22 @@
 
    P0 = newclass 'Inport'
    addattribute P0, 'stream'
+
+   ## default input port
+   P0 = new 'Inport'
+   P1 = getstdin
+   setattribute P0, 'stream', P1
+   set_hll_global 'stdin*', P0
+   
    P0 = newclass 'Outport'
    addattribute P0, 'stream'
 
+   ## default output port
+   P0 = new 'Outport'
+   P1 = getstdout
+   setattribute P0, 'stream', P1
+   set_hll_global 'stdout*', P0
+   
    P0 = newclass 'Eof'
    
    .return ()
