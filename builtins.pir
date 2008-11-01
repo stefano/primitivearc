@@ -444,30 +444,49 @@ error:
 .end
 
 .sub 'readc'
-   .param pmc inport
+   .param pmc inport :optional
+   .param int has_in :opt_flag
+   if has_in goto do
+   inport = get_hll_global 'stdin*'
+do:     
    .return inport.'get1'()
 .end
    
 .sub 'readb'
-   .param pmc inport
+   .param pmc inport :optional
+   .param int has_in :opt_flag
+   if has_in goto do
+   inport = get_hll_global 'stdin*'
+do:
    .return 'readc'(inport)
 .end
 
 .sub 'peekc'
-   .param pmc inport
+   .param pmc inport :optional
+   .param int has_in :opt_flag
+   if has_in goto do
+   inport = get_hll_global 'stdin*'
+do:
    .return inport.'peek1'()
 .end
 
 .sub 'read'
-   .param pmc inport
+   .param pmc inport :optional
+   .param int has_in :opt_flag
+   if has_in goto do
+   inport = get_hll_global 'stdin*'
+do:
    .return _read(inport)
 .end
 
 ## this is actually write-string...
 .sub 'writec'
    .param pmc c
-   .param pmc outport
-   
+   .param pmc outport :optional
+   .param int has_out :opt_flag
+   if has_out goto do
+   outport = get_hll_global 'stdout*'
+do:
    P0 = getattribute outport, 'stream'
    S0 = c
    print P0, S0
@@ -477,14 +496,21 @@ error:
 
 .sub 'writeb'
    .param pmc c
-   .param pmc outport
+   .param pmc outport :optional
+   .param int has_out :opt_flag
+   if has_out goto do
+   outport = get_hll_global 'stdout*'
+do:
    .return 'writec'(c, outport)
 .end
 
 .sub 'write'
    .param pmc what
-   .param pmc outport
-
+   .param pmc outport :optional
+   .param int has_out :opt_flag
+   if has_out goto do
+   outport = get_hll_global 'stdout*'
+do:
    S1 = what # conversion
    S0 = typeof what
    unless S0 == 'String' goto go_on
@@ -500,8 +526,11 @@ go_on:
 
 .sub 'disp'
    .param pmc what
-   .param pmc outport
-
+   .param pmc outport :optional
+   .param int has_out :opt_flag
+   if has_out goto do
+   outport = get_hll_global 'stdout*'
+do:
    S0 = what # conversion
    P0 = getattribute outport, 'stream'
    print P0, S0
