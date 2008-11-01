@@ -49,8 +49,8 @@ See README
 + stdout
 + stdin
 + stderr
-- call-w/stdin
-- call-w/stdout
++ call-w/stdin
++ call-w/stdout
 + readc
 + readb
 + peekc

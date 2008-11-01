@@ -537,6 +537,21 @@ do:
    .return (what)
 .end
 
+.macro defcallw(name, toport)
+   .sub .name
+      .param pmc port
+      .param pmc fn
+      P0 = get_hll_global .toport # save
+      set_hll_global .toport, port # set
+      P1 = arcall(fn)
+      set_hll_global .toport, P0 # restore
+      .return (P1)
+   .end
+.endm
+
+.defcallw('call-w/stdin', 'stdin*')
+.defcallw('call-w/stdout', 'stdout*')
+
 .sub 'load'
    .param pmc file
 
