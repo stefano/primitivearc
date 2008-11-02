@@ -47,6 +47,9 @@
    set_hll_global 'stdout*', P0
    
    P0 = newclass 'Eof'
+
+   P0 = newclass 'Socketport'
+   addattribute P0, 'fd'
    
    .return ()
 .end
@@ -165,6 +168,12 @@ end:
 
 .sub __get_string :method
    .return ("#<eof>")
+.end
+
+.namespace ['Socketport']
+
+.sub __get_string :method
+   .return ("#<socket>")
 .end
 
 ## functions accessible to the user

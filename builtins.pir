@@ -624,3 +624,27 @@ false:
    .return (P0)
 .end
 
+.sub 'sleep'
+   .param int n
+   sleep n
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
+
+.sub 'maptable'
+   .param pmc fn
+   .param pmc table
+
+   .local pmc iter
+
+   iter = new 'Iterator', table
+loop:
+   unless iter goto end
+   P0 = shift iter
+   P1 = table[P0]
+   arcall2(fn, P0, P1)
+   goto loop
+end:
+   .return (table)
+.end
+

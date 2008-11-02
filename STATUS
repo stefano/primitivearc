@@ -65,12 +65,12 @@ See README
 - new-thread
 - kill-thread
 - break-thread
-- sleep
++ sleep
 + system
 + pipe-from
 ++ pipe-to (extra)
 + table
-- maptable
++ maptable
 - protect
 + rand
 + dir
