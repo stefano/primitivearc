@@ -85,7 +85,7 @@ See README
 + scar
 + scdr
 + sref on tables, strings, lists
-- bound
++ bound
 - newstring
 - trunc
 - exact
