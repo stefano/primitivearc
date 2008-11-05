@@ -657,3 +657,16 @@ end:
    P0.'run_clone'(P1, fn)
    .return (P0)
 .end
+
+.sub 'bound'
+   .param pmc sym
+
+   S0 = sym
+   P0 = get_hll_global S0
+   if_null P0, false
+   P0 = get_hll_global 't'
+   .return (P0)
+false:
+   P0 = get_hll_global 'nil'
+   .return (P0)
+.end
