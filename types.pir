@@ -50,6 +50,10 @@
 
    P0 = newclass 'Socketport'
    addattribute P0, 'fd'
+
+   ## threading
+
+   P0 = subclass 'ParrotThread', 'Thread'
    
    .return ()
 .end
@@ -174,6 +178,12 @@ end:
 
 .sub __get_string :method
    .return ("#<socket>")
+.end
+
+.namespace ['Thread']
+
+.sub __get_string :method
+   .return ("#<thread>")
 .end
 
 ## functions accessible to the user
@@ -366,7 +376,10 @@ type_err:
 .sub 'type'
    .param pmc what
    S0 = typeof what
+   if S0 == 'Tagged' goto tagged
    S0 = downcase S0
    .return 'intern'(S0)
+tagged:
+   P0 = what[0]
+   .return (P0)
 .end
-

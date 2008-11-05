@@ -648,3 +648,12 @@ end:
    .return (table)
 .end
 
+##!! doesn't work
+.sub 'new-thread'
+   .param pmc fn
+
+   P0 = new 'ParrotThread'
+   P1 = get_hll_global 'arcall'
+   P0.'run_clone'(P1, fn)
+   .return (P0)
+.end
