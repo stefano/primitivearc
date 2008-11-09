@@ -670,3 +670,23 @@ false:
    P0 = get_hll_global 'nil'
    .return (P0)
 .end
+
+.sub 'newstring'
+   .param int n
+   .param string c :optional
+   .param int has_c :opt_flag
+
+   if has_c goto go_on
+   c = " "
+go_on:  
+   S0 = ""
+loop:
+   if n >= 0 goto end
+   S0 .= c
+   n = n - 1
+   goto loop
+end:
+   P0 = new 'String'
+   P0 = S0
+   .return (P0)
+.end
