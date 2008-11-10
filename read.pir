@@ -58,6 +58,12 @@
    P0 = new 'Hash'
    P1 = get_hll_global '_ssyntax_neg'
    P0["~"] = P1
+   P1 = get_hll_global '_ssyntax_compose'
+   P0[":"] = P1
+   P1 = get_hll_global '_ssyntax_dot'
+   P0["."] = P1
+   P1 = get_hll_global '_ssyntax_exclamation'
+   P0["!"] = P1
    set_hll_global 'ssyntax-table*', P0
    
    .return ()
@@ -456,5 +462,51 @@ ok:
    P0 = 'intern'("complement")
    P1 = 'intern'(S0)
    P1 = 'ssexpand'(P1)
+   .return 'list'(P0, P1)
+.end
+
+## check that the ssyntax character is in the middle of the symbol
+## and return the two (expanded) sides
+.sub _get_sides
+   .param string sym
+   .param int pos
+
+   I0 = length sym
+   I0 = I0 - 1
+   if pos == 0 goto error
+   if pos == I0 goto error
+   S0 = substr sym, 0, pos
+   I0 = pos + 1
+   S1 = substr sym, I0
+   P0 = 'intern'(S0)
+   P0 = 'ssexpand'(P0)
+   P1 = 'intern'(S1)
+   P1 = 'ssexpand'(P1)
+   .return (P0, P1)
+error:
+   .return 'err'("Wrong usage of ssyntax")
+.end
+
+.sub _ssyntax_compose
+   .param string sym
+   .param int pos
+   P0 = 'intern'("compose")
+   (P1, P2) = _get_sides(sym, pos)
+   .return 'list'(P0, P1, P2)
+.end
+
+.sub _ssyntax_dot
+   .param string sym
+   .param int pos
+   (P0, P1) = _get_sides(sym, pos)
+   .return 'list'(P0, P1)
+.end
+
+.sub _ssyntax_exclamation
+   .param string sym
+   .param int pos
+   (P0, P1) = _get_sides(sym, pos)
+   P2 = 'intern'("quote")
+   P1 = 'list'(P2, P1)
    .return 'list'(P0, P1)
 .end

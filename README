@@ -25,7 +25,7 @@ Roadmap:
   * Strings -- done
   * Lists and dotted lists -- done
   * [ ... ] syntax -- done
-  * intrasymbol syntax: '.', '!', ':'
+  * intrasymbol syntax: '.', '!', ':' -- done
   * quote -- done
   * quasiquote and unquote -- done
 * Compiler

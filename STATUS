@@ -97,5 +97,5 @@ See README
 - atomic-invoke
 - dead
 - ssyntax
-- ssexpand
++ ssexpand
 - quit
