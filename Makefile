@@ -9,7 +9,7 @@ types.pbc: types.pir
 symtable.pbc: symtable.pir
 	$(PARROT) -o symtable.pbc symtable.pir
 
-read.pbc: read.pir
+read.pbc: read.pir types_macros.pir
 	$(PARROT) -o read.pbc read.pir
 
 arcall.pbc: arcall.pir

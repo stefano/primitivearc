@@ -52,6 +52,14 @@
    P0["\""] = "\""
    set_hll_global 'escape-table*', P0
 
+   ## Global ssyntax table
+   ## each function take the string representation of the symbol
+   ## and the position of the ssyntax character
+   P0 = new 'Hash'
+   P1 = get_hll_global '_ssyntax_neg'
+   P0["~"] = P1
+   set_hll_global 'ssyntax-table*', P0
+   
    .return ()
 .end
 
@@ -206,9 +214,8 @@ end:
    ## handle the constants t & nil
    if result == "t" goto ret_t
    if result == "nil" goto ret_nil
-   P0 = new 'String'
-   P0 = result
-   .return intern(P0)
+   P0 = 'intern'(result)
+   .return 'ssexpand'(P0)
 ret_t:
    P0 = get_hll_global 't'
    .return (P0)
@@ -280,10 +287,8 @@ try_integer:
    P0 = I0
    .return (P0)
 mk_symbol:
-   P0 = new 'String'
-   P0 = S0
-   .return intern(P0)
-
+   P0 = 'intern'(S0)
+   .return 'ssexpand'(P0)
 .end
    
 .sub _read_string
@@ -414,4 +419,42 @@ error:
    rs.get1() # throw away '@'
 go_on:
    .return _read_next_with_head(rs, type)
+.end
+
+.include 'types_macros.pir'
+
+.sub 'ssexpand'
+   .param pmc sym
+
+   .check_type(sym, 'Symbol')
+   .local pmc tbl
+   tbl = get_hll_global 'ssyntax-table*'
+   I0 = -1
+   S0 = sym
+   I1 = length S0
+loop:
+   I0 = I0 + 1
+   if I0 == I1 goto end
+   S1 = S0[I0]
+   P0 = tbl[S1]
+   I2 = defined P0
+   unless I2 goto loop
+   .return P0(S0, I0)
+end:
+   .return (sym)
+.end
+
+.sub _ssyntax_neg
+   .param string sym
+   .param int pos
+
+   if pos == 0 goto ok
+   .return 'intern'(sym)
+
+ok:     
+   S0 = substr sym, 1
+   P0 = 'intern'("complement")
+   P1 = 'intern'(S0)
+   P1 = 'ssexpand'(P1)
+   .return 'list'(P0, P1)
 .end
