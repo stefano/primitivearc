@@ -86,7 +86,7 @@ See README
 + scdr
 + sref on tables, strings, lists
 + bound
-- newstring
++ newstring
 - trunc
 - exact
 - msec
