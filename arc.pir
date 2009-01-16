@@ -19,46 +19,51 @@
     compreg 'Arc', $P0
 
     ## for every file in the command line, compile it
-#    .local pmc iter
-#    .local pmc compiler
-#    iter = new 'Iterator', args
-#    $S0 = shift iter # skip first arg (the compiler program)
-#    compiler = compreg 'Arc'
-#loop:
-#    unless iter goto end 
-#    $S0 = shift iter
-#    $S0 = file_to_string($S0)
-#    $P0 = compiler($S0) # compilation returns a sub representing the program
-#    say 'Running...'
-#    $P0() # run the just compiled bytecode
-#    goto loop
-#end:	
+    .local pmc iter
+   # .local pmc compiler
+    iter = new 'Iterator', args
+    $S0 = shift iter # skip first arg (the compiler program)
+  #  compiler = compreg 'Arc'
+loop:
+    unless iter goto end 
+    $S0 = shift iter
+    if $S0 == '-e' goto eval_mode # enter evaluation mode 
+    $S0 = file_to_string($S0)
+    $P0 = _compile($S0)
+    $P0() # run the just compiled bytecode
+    goto loop
+end:
+    $P1 = get_hll_global '***'
+    say $P1
+    goto the_end
+eval_mode:      
     ##    say 'Done'
     $P0 = getstdin
     .local pmc out
     out = getstdout
     $P1 = new 'ReadStream'
-loop:
+loop2:
     push_eh error # never give up
     print out, "arc> "
     out.'flush'()
     $S0 = readline $P0
-#    $P1.input($S0)
-#    $P2 = _read($P1)
+    #$P1.'input'($S0)
+    #$P2 = _read($P1)
     #say $P2
     #say ''
-#    _tl_compile($P2)
+    #_tl_compile($P2)
 #    say '---'
     $P1 = _compile($S0)
     $P1()
     $P2 = get_hll_global '***'
     #print ' -> '
     say $P2
-    goto loop
+    goto loop2
 error:
     .get_results($P2)
     say $P2
     goto loop
+the_end:        
 .end
 
 .sub file_to_string

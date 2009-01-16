@@ -26,3 +26,6 @@ arc.pbc: arc.pir
 
 clean:
 	rm *.pbc *?~
+
+test:
+	perl t/harness
