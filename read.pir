@@ -75,7 +75,7 @@
    .param string str
    
    self = str # stream contents
-   $P0 = new '$Integer'
+   $P0 = new 'Integer'
    $P0 = 0
    setattribute self, 'position', $P0 # start at position 0
 
@@ -288,7 +288,7 @@ try_integer:
    ## try to parse an int
    $I0 = _str_made_of($S0, "0123456789", from)
    unless $I0 goto mk_symbol
-   $P0 = new '$Integer'
+   $P0 = new 'Integer'
    $I0 = $S0 # type conversion
    $P0 = $I0
    .return ($P0)

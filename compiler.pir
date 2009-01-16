@@ -113,7 +113,7 @@
    (fns, consts, expr) = _collect_fn_and_consts(expr, $P0, $P1, 0)
    $P0 = _empty_state()
    code = getattribute $P0, 'code'
-   code.'emit'(".HLL 'Arc', ''")
+   code.'emit'(".HLL 'Arc'")
    ## main function
    code.'emit'(<<"END")
 .sub _main :anon
