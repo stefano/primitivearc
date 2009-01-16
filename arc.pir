@@ -27,7 +27,7 @@
 loop:
     unless iter goto end 
     $S0 = shift iter
-    if $S0 == '-e' goto eval_mode # enter evaluation mode 
+    if $S0 == '-e' goto eval_mode # enter evaluation mode
     $S0 = file_to_string($S0)
     $P0 = _compile($S0)
     $P0() # run the just compiled bytecode
