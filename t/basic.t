@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 use lib qw( . lib ../lib ../../parrot/lib ../parrot/lib );
 
@@ -21,3 +22,4 @@ language_output_is('Arc', '-0', "0\n", 'float zero number');
 language_output_is('Arc', '#\a', "a\n", 'simple char');
 language_output_is('Arc', '#\space', " \n", 'space char');
 language_output_is('Arc', '#\newline', "\n\n", 'newline char');
+language_output_is('Arc', '#\u263A', "\x{263A}\n", 'unicode char');
