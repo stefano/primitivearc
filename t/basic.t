@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../parrot/lib ../parrot/lib );
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Parrot::Test;
 
 language_output_is('Arc', '-1234', "-1234\n", 'neg number');

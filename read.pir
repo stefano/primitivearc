@@ -30,6 +30,8 @@
    $P0["7"] = $P1
    $P0["8"] = $P1
    $P0["9"] = $P1
+   $P1 = get_hll_global '_read_char'
+   $P0["#"] = $P1
    $P1 = get_hll_global '_read_string'
    $P0["\""] = $P1
    $P1 = get_hll_global '_read_list'
@@ -52,6 +54,13 @@
    $P0["\""] = "\""
    set_hll_global 'escape-table*', $P0
 
+   ## Global character names table
+   $P0 = new 'Hash'
+   $P0["newline"] = "\n"
+   $P0["space"] = " "
+   $P0["tab"] = "\t"
+   set_hll_global 'char-table*', $P0
+   
    ## Global ssyntax table
    ## each function take the string representation of the symbol
    ## and the position of the ssyntax character
@@ -297,7 +306,29 @@ mk_symbol:
    $P0 = 'intern'($S0)
    .tailcall 'ssexpand'($P0)
 .end
-   
+
+.sub _read_char
+   .param pmc rs
+   .local pmc ct
+
+   ct = get_hll_global 'char-table*'
+   rs.'get1'() # skip #
+   $S0 = rs.'get1'()
+   unless $S0 == "\\" goto error
+   $P0 = _read_symbol(rs)
+   $S0 = $P0 # get char name
+   $P0 = ct[$S0]
+   $I0 = defined $P0
+   if $I0 goto ret_it
+   $I0 = length $S0
+   unless $I0 == 1 goto error
+   .return ($S0)
+ret_it:
+   .return ($P0)
+error:
+   .tailcall 'err'("Wrong syntax")
+.end
+
 .sub _read_string
    .param pmc rs
    .local string res
