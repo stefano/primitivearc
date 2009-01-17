@@ -20,10 +20,13 @@
 
     ## for every file in the command line, compile it
     .local pmc iter
-   # .local pmc compiler
     iter = new 'Iterator', args
     $S0 = shift iter # skip first arg (the compiler program)
-  #  compiler = compreg 'Arc'
+
+    ## default value for ***
+    $P1 = get_hll_global 'nil'
+    set_hll_global '***', $P1
+    push_eh run_error
 loop:
     unless iter goto end 
     $S0 = shift iter
@@ -36,23 +39,19 @@ end:
     $P1 = get_hll_global '***'
     say $P1
     goto the_end
-eval_mode:      
-    ##    say 'Done'
+run_error:
+    .get_results($P2)
+    say $P2
+    goto the_end
+eval_mode:
     $P0 = getstdin
     .local pmc out
     out = getstdout
-    $P1 = new 'ReadStream'
 loop2:
     push_eh error # never give up
     print out, "arc> "
     out.'flush'()
     $S0 = readline $P0
-    #$P1.'input'($S0)
-    #$P2 = _read($P1)
-    #say $P2
-    #say ''
-    #_tl_compile($P2)
-#    say '---'
     $P1 = _compile($S0)
     $P1()
     $P2 = get_hll_global '***'
@@ -62,7 +61,7 @@ loop2:
 error:
     .get_results($P2)
     say $P2
-    goto loop
+    goto loop2
 the_end:        
 .end
 

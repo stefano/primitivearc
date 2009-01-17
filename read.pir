@@ -208,6 +208,7 @@ end:
    
 loop:
    $S0 = rs.'peek1'()
+   if $S0 == 'nil' goto end # EOF
    $I0 = index separators, $S0
    unless $I0 == -1 goto end # separator may be safely left in the stream
    $I0 = index special, $S0
