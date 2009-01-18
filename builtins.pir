@@ -115,7 +115,7 @@ zero_args:
       .param num i1
       .param num i2
       $N0 = i1 .op i2
-      .return ($P0)
+      .return ($N0)
    .end
 
    .sub .name :multi(Integer)
