@@ -140,7 +140,7 @@ zero_args:
 .sub mod
    .param int a
    .param int b
-   $I0 = a / b
+   $I0 = mod a, b
    .return ($I0)
 .end
 
