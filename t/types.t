@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../parrot/lib ../parrot/lib );
 
-use Test::More tests => 20;
+use Test::More tests => 22;
 use Parrot::Test;
 
 # nil & t
@@ -36,3 +36,7 @@ language_output_is('Arc', '(intern "CkL")', "CkL\n", 'sym');
 language_output_is('Arc', "(annotate 2 1)", "#3(tagged 2 1)\n", 'annotations');
 language_output_is('Arc', "(type (annotate 2 1))", "2\n", 'annotations');
 language_output_is('Arc', "(rep (annotate 2 1))", "1\n", 'annotations');
+
+# strings
+language_output_is('Arc', '"a string"', "\"a string\"\n", 'strings');
+language_output_is('Arc', '"a string\n"', "\"a string\n\"\n", 'strings');
