@@ -242,7 +242,7 @@ final:
    .local pmc last
    .local pmc iter
    .local pmc nil
-   nil = find_global 'nil'
+   nil = get_hll_global 'nil'
    last = nil
    res = nil
    iter = new 'Iterator', elems

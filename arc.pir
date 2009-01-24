@@ -70,7 +70,7 @@ the_end:
    .local pmc handle
    .local string res
    
-   handle = open name, '<'
+   handle = open name, 'r'
    unless handle goto file_error
 loop:
    unless handle goto end

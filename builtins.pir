@@ -261,7 +261,7 @@ true:
    .local pmc res
    .local pmc last
 
-   nil = find_global 'nil'
+   nil = get_hll_global 'nil'
    last = nil
    res = nil
 start:
@@ -398,13 +398,13 @@ error:
 .sub 'infile'
    .param pmc fname
    $P0 = new 'Inport'
-   .tailcall '_open_file'(fname, $P0, '<')
+   .tailcall '_open_file'(fname, $P0, 'r')
 .end
 
 .sub 'outfile'
    .param pmc fname
    $P0 = new 'Outport'
-   .tailcall '_open_file'(fname, $P0, '>')
+   .tailcall '_open_file'(fname, $P0, 'w')
 .end
 
 .sub 'inside'
@@ -417,14 +417,14 @@ error:
 .sub 'pipe-from'
    .param pmc cmd
    $P0 = new 'Inport'
-   .tailcall '_open_file'(cmd, $P0, '-|')
+   .tailcall '_open_file'(cmd, $P0, 'rp')
 .end
 
 ## not in Arc2
 .sub 'pipe-to'
    .param pmc cmd
    $P0 = new 'Outport'
-   .tailcall '_open_file'(cmd, $P0, '|-')
+   .tailcall '_open_file'(cmd, $P0, 'wp')
 .end
 
 .sub 'close'

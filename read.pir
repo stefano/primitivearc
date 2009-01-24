@@ -252,7 +252,7 @@ ret_nil:
    if from >= $I1 goto fail
 loop:	
    if $I0 >= $I1 goto ok
-   $S0 = in[$I0]
+   $S0 = substr in, $I0, 1
    $I2 = index allowed, $S0
    if $I2 == -1 goto fail
    $I0 += 1
@@ -473,7 +473,7 @@ go_on:
 loop:
    $I0 = $I0 + 1
    if $I0 == $I1 goto end
-   $S1 = $S0[$I0]
+   $S1 = substr $S0, $I0, 1
    $P0 = tbl[$S1]
    $I2 = defined $P0
    unless $I2 goto loop
