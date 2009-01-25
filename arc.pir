@@ -71,12 +71,12 @@ the_end:
    .local string res
    
    handle = new 'FileHandle'
-   push_eh handler
+   push_eh error
    res = handle.'readall'( name )
    pop_eh
    handle.'close'()
    .return (res)
-handler:
+error:
    .local pmc ex
    .get_results (ex)
    ex = "File error"

@@ -438,7 +438,7 @@ handler:
    .param pmc port
    
    $P0 = getattribute port, 'stream'   
-   close $P0
+   $P0.'close'()
    $P0 = get_hll_global 'nil'
    .return ($P0)
 .end
@@ -489,7 +489,7 @@ do:
 do:
    $P0 = getattribute outport, 'stream'
    $S0 = c
-   print $P0, $S0
+   $P0.'puts'($S0)
    
    .return (c)
 .end
@@ -520,7 +520,7 @@ do:
    $S1 = $S0
 go_on:
    $P0 = getattribute outport, 'stream'
-   print $P0, $S1
+   $P0.'puts'($S1)
    .return (what)
 .end
 
@@ -533,7 +533,7 @@ go_on:
 do:
    $S0 = what # conversion
    $P0 = getattribute outport, 'stream'
-   print $P0, $S0
+   $P0.'puts'($S0)
    .return (what)
 .end
 

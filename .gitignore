@@ -1,0 +1,7 @@
+Makefile
+*.pbc
+*.patch
+*.tar
+*.tar.gz
+t/*.arc
+t/*.out
