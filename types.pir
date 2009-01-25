@@ -60,7 +60,7 @@
 
 .namespace ['Cons']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .local string str
       
    str = "("
@@ -92,26 +92,26 @@ end:
 
 .namespace ['Symbol']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    $S0 = self[0]
    .return ($S0)
 .end
 
 .namespace ['Nil']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return("nil")
 .end
 
 .namespace ['T']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return("t")
 .end
 
 .namespace ['Tagged']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    $S0 = "#3(tagged "
    $S1 = self[0]
    $S0 .= $S1
@@ -124,7 +124,7 @@ end:
 
 .namespace ['Inport']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return ("#<input port>")
 .end
 
@@ -163,25 +163,25 @@ end:
 
 .namespace ['Outport']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return ("#<output port>")
 .end
 
 .namespace ['Eof']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return ("#<eof>")
 .end
 
 .namespace ['Socketport']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return ("#<socket>")
 .end
 
 .namespace ['Thread']
 
-.sub 'get_string' :method
+.sub 'get_string' :vtable :method
    .return ("#<thread>")
 .end
 
