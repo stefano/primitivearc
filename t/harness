@@ -1,4 +1,4 @@
 #!/usr/bin/perl
 
-use lib qw( . lib ../lib ../parrot/lib ../../parrot/lib );
+use lib qw( . lib ../lib ../../lib );
 use Parrot::Test::Harness language => 'Arc';

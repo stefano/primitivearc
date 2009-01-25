@@ -4,7 +4,7 @@
 
 .include 'interpinfo.pasm' # for .INTERPINFO_CURRENT_CONT
 
-.sub err
+.sub 'err'
    .param pmc what
    .local string msg
    msg = "\nWithin "
@@ -24,7 +24,7 @@ loop:
    .return ($P0)
 .end
 
-.sub len :multi(Cons)
+.sub 'len' :multi(Cons)
    .param pmc lst
 
    .local pmc nil
@@ -42,14 +42,14 @@ end:
    .return ($P0)
 .end
 
-.sub len :multi(Nil)
+.sub 'len' :multi(Nil)
    .param pmc thenil
    $P0 = new 'Integer'
    $P0 = 0
    .return ($P0)
 .end
 
-.sub len :multi(Hash)
+.sub 'len' :multi(Hash)
    .param pmc h
 
    $I0 = h
@@ -58,7 +58,7 @@ end:
    .return ($P0)
 .end
 
-.sub len :multi(String)
+.sub 'len' :multi(String)
    .param pmc s
 
    $S0 = s
@@ -137,14 +137,14 @@ zero_args:
 .defmathop('*', *)
 .defmathop('/', /)
 
-.sub mod
+.sub 'mod'
    .param int a
    .param int b
    $I0 = mod a, b
    .return ($I0)
 .end
 
-.sub expt
+.sub 'expt'
    .param num a
    .param num b
    $N0 = pow a, b
@@ -157,7 +157,7 @@ zero_args:
    .return ($N0)
 .end
 
-.sub is :multi()
+.sub 'is' :multi()
    .param pmc args :slurpy
    .local pmc nil
    nil = get_hll_global 'nil'
@@ -182,13 +182,13 @@ error:
    .tailcall 'err'("is needs at least one argument!")
 .end
 
-.sub is :multi(PMC)
+.sub 'is' :multi(PMC)
    .param pmc a
    $P0 = get_hll_global 't'
    .return ($P0)
 .end
 
-.sub is :multi(PMC, PMC)
+.sub 'is' :multi(PMC, PMC)
    .param pmc a
    .param pmc b
    
@@ -384,15 +384,22 @@ end:
    .param string direction
 
    $S0 = fname
-   $P0 = open $S0, direction
-   unless $P0 goto error
+   $P0 = new 'FileHandle'
+   push_eh handler
+   $P0.'open'( $S0, direction )
+   pop_eh
    setattribute io_obj, 'stream', $P0
    .return (io_obj)
-error:
+handler:
+   .local pmc ex
+   .get_results (ex)
    $S0 = "Can't open file: "
    $S1 = fname
    $S0 .= $S1
-   'err'($S0)
+#   can't call 'die' in an exception handler
+#   'err'($S0)
+   ex = $S0
+   rethrow ex
 .end
 
 .sub 'infile'

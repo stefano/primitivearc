@@ -9,7 +9,7 @@
 ## ReadStream is a class containing the string to read from and the
 ## next position in the string to read
 
-.sub _init :load :init :anon
+.sub '_init' :load :init :anon
 
    ## ReadStream class
    $P0 = subclass 'String', 'ReadStream'
@@ -80,7 +80,7 @@
 
 .namespace ['ReadStream']
 
-.sub input :method
+.sub 'input' :method
    .param string str
    
    self = str # stream contents
@@ -92,7 +92,7 @@
 .end
 
 ## signals eof only _after_ reading one char beyond the last
-.sub is_eof :method
+.sub 'is_eof' :method
    $P0 = getattribute self, 'position'
    $I0 = $P0
    $S0 = self
@@ -103,7 +103,7 @@ false:
    .return (0)
 .end
 
-.sub peek1 :method
+.sub 'peek1' :method
    $P0 = getattribute self, 'position'
    $I0 = $P0
    $S0 = self
@@ -118,7 +118,7 @@ end:
 
 ## get next character and advance position
 ## return nil on end-of-string
-.sub get1 :method
+.sub 'get1' :method
    $P0 = getattribute self, 'position'
    $I0 = $P0
    $S0 = self
@@ -160,7 +160,7 @@ end:
 .end
    
 ## main reader function
-.sub _read
+.sub '_read'
    .param pmc rs
    .local pmc tbl
 
@@ -187,14 +187,14 @@ eof_found:
    .return ($P0)
 .end
 
-.sub _skip_line
+.sub '_skip_line'
    .param pmc rs
 loop:
    $S0 = rs.'get1'()
    unless $S0 == "\n" goto loop
 .end
 
-.sub _skip_separators
+.sub '_skip_separators'
    .param pmc rs
 
 loop:	
@@ -209,7 +209,7 @@ end:
    .return ()
 .end
 
-.sub _read_symbol
+.sub '_read_symbol'
    .param pmc rs
    .local string result
 
@@ -242,7 +242,7 @@ ret_nil:
 
 ## check if a string contains only of a certain set of character
 ## at least one must be present
-.sub _str_made_of
+.sub '_str_made_of'
    .param string in
    .param string allowed
    .param int from
@@ -266,7 +266,7 @@ fail:
 ## try to read a number, but if it can't parse it as a number, return a
 ## symbol
 ## ?? could _read_num substitute _read_symbol? ?? 
-.sub _read_num
+.sub '_read_num'
    .param pmc rs
    .local int from
 
@@ -307,7 +307,7 @@ mk_symbol:
    .tailcall 'ssexpand'($P0)
 .end
 
-.sub _read_char
+.sub '_read_char'
    .param pmc rs
    .local pmc ct
 
@@ -329,7 +329,7 @@ error:
    .tailcall 'err'("Wrong syntax")
 .end
 
-.sub _read_string
+.sub '_read_string'
    .param pmc rs
    .local string res
    .local int escapep # true when we need to escape a character
@@ -365,7 +365,7 @@ error:
 
 ## read a list terminating with ter
 ## suppose opening bracket already read
-.sub _read_list_with_ter
+.sub '_read_list_with_ter'
    .param pmc rs
    .param string ter
   
@@ -401,14 +401,14 @@ error:
    .return ($P0)
 .end
    
-.sub _read_list
+.sub '_read_list'
    .param pmc rs
 
    rs.'get1'() # skip (
    .tailcall _read_list_with_ter(rs, ")")
 .end
 
-.sub _read_square_bracket
+.sub '_read_square_bracket'
    .param pmc rs
 
    rs.'get1'() # skip [
@@ -422,7 +422,7 @@ error:
    .tailcall cons($P1, $P2) # (fn (_) expr)
 .end
 
-.sub _read_next_with_head
+.sub '_read_next_with_head'
    .param pmc rs
    .param string head
    
@@ -433,19 +433,19 @@ error:
    .tailcall cons($P1, $P0) # (head expr)
 .end
 
-.sub _read_quote
+.sub '_read_quote'
    .param pmc rs
    rs.'get1'() # skip '
    .tailcall _read_next_with_head(rs, "quote")
 .end
 
-.sub _read_qq
+.sub '_read_qq'
    .param pmc rs
    rs.'get1'() # skip `
    .tailcall _read_next_with_head(rs, "quasiquote")
 .end
 
-.sub _read_unquote
+.sub '_read_unquote'
    .param pmc rs
    .local string type
    
@@ -482,7 +482,7 @@ end:
    .return (sym)
 .end
 
-.sub _ssyntax_neg
+.sub '_ssyntax_neg'
    .param string sym
    .param int pos
 
@@ -499,7 +499,7 @@ ok:
 
 ## check that the ssyntax character is in the middle of the symbol
 ## and return the two (expanded) sides
-.sub _get_sides
+.sub '_get_sides'
    .param string sym
    .param int pos
 
@@ -519,7 +519,7 @@ error:
    .tailcall 'err'("Wrong usage of ssyntax")
 .end
 
-.sub _ssyntax_compose
+.sub '_ssyntax_compose'
    .param string sym
    .param int pos
    $P0 = 'intern'("compose")
@@ -527,14 +527,14 @@ error:
    .tailcall 'list'($P0, $P1, $P2)
 .end
 
-.sub _ssyntax_dot
+.sub '_ssyntax_dot'
    .param string sym
    .param int pos
    ($P0, $P1) = _get_sides(sym, pos)
    .tailcall 'list'($P0, $P1)
 .end
 
-.sub _ssyntax_exclamation
+.sub '_ssyntax_exclamation'
    .param string sym
    .param int pos
    ($P0, $P1) = _get_sides(sym, pos)

@@ -2,7 +2,7 @@
 
 .namespace [ ]
 
-.sub _types_init :anon :init :load
+.sub '_types_init' :anon :init :load
 
    ## Cons cell
    
@@ -60,7 +60,7 @@
 
 .namespace ['Cons']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .local string str
       
    str = "("
@@ -92,26 +92,26 @@ end:
 
 .namespace ['Symbol']
 
-.sub __get_string :method
+.sub 'get_string' :method
    $S0 = self[0]
    .return ($S0)
 .end
 
 .namespace ['Nil']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return("nil")
 .end
 
 .namespace ['T']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return("t")
 .end
 
 .namespace ['Tagged']
 
-.sub __get_string :method
+.sub 'get_string' :method
    $S0 = "#3(tagged "
    $S1 = self[0]
    $S0 .= $S1
@@ -124,13 +124,13 @@ end:
 
 .namespace ['Inport']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return ("#<input port>")
 .end
 
 ## compatibility with ReadStream
 
-.sub is_eof :method
+.sub 'is_eof' :method
    $P0 = getattribute self, 'stream'
    $I0 = $P0.'eof'()
    if $I0 goto true
@@ -139,7 +139,7 @@ true:
    .return (1)
 .end
 
-.sub peek1 :method
+.sub 'peek1' :method
    $P0 = getattribute self, 'stream'
    $S0 = peek $P0
    $I0 = $P0.'eof'()
@@ -150,7 +150,7 @@ end:
    .return ($P0)
 .end
 
-.sub get1 :method
+.sub 'get1' :method
    $P0 = getattribute self, 'stream'
    $S0 = read $P0, 1
    $I0 = $P0.'eof'()
@@ -163,25 +163,25 @@ end:
 
 .namespace ['Outport']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return ("#<output port>")
 .end
 
 .namespace ['Eof']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return ("#<eof>")
 .end
 
 .namespace ['Socketport']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return ("#<socket>")
 .end
 
 .namespace ['Thread']
 
-.sub __get_string :method
+.sub 'get_string' :method
    .return ("#<thread>")
 .end
 
@@ -189,7 +189,7 @@ end:
 
 .namespace [ ]
 
-.sub cons
+.sub 'cons'
    .param pmc car
    .param pmc cdr
 
@@ -201,7 +201,7 @@ end:
    .return ($P0)
 .end
 
-.sub car
+.sub 'car'
    .param pmc cell
    $P0 = get_hll_global 'nil'
    $I0 = issame $P0, cell
@@ -211,14 +211,14 @@ final:
    .return ($P0)
 .end
 
-.sub scar
+.sub 'scar'
    .param pmc cell
    .param pmc val
    cell[0] = val
    .return (val)
 .end
 
-.sub cdr
+.sub 'cdr'
    .param pmc cell
    $P0 = get_hll_global 'nil'
    $I0 = issame $P0, cell
@@ -228,14 +228,14 @@ final:
    .return ($P0)
 .end
 
-.sub scdr
+.sub 'scdr'
    .param pmc cell
    .param pmc val
    cell[1] = val
    .return (val)
 .end
 
-.sub list
+.sub 'list'
    .param pmc elems :slurpy
 
    .local pmc res
@@ -264,7 +264,7 @@ end:
    .return (res)
 .end
 
-.sub _list_to_array
+.sub '_list_to_array'
    .param pmc lst
    .local pmc res
    .local pmc nil
@@ -283,13 +283,13 @@ end:
 .end
 
 ## there is no plist in Arc...
-.sub plist
+.sub 'plist'
    .param pmc sym
    $P0 = sym[1]
    .return ($P0)
 .end
 
-.sub annotate
+.sub 'annotate'
    .param pmc type
    .param pmc rep
 
@@ -301,18 +301,18 @@ end:
    .return ($P0)
 .end
 
-.sub rep
+.sub 'rep'
    .param pmc annotation
    $P0 = annotation[1]
    .return ($P0)
 .end
 
-.sub table
+.sub 'table'
    $P0 = new 'Hash'
    .return ($P0)
 .end
 
-.sub sref :multi(Hash)
+.sub 'sref' :multi(Hash)
    .param pmc h
    .param pmc val
    .param pmc key
@@ -322,7 +322,7 @@ end:
    .return (val)
 .end
 
-.sub sref :multi(String)
+.sub 'sref' :multi(String)
    .param pmc str
    .param pmc val
    .param pmc ind
@@ -340,7 +340,7 @@ type_err2:
    .tailcall 'err'("Wrong type passed as index to sref (string)")
 .end
 
-.sub sref :multi(Cons)
+.sub 'sref' :multi(Cons)
    .param pmc cell
    .param pmc val
    .param pmc ind

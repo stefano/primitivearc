@@ -2,7 +2,7 @@
 
 .namespace [ ]
 
-.sub _init :anon :init :load
+.sub '_init' :anon :init :load
    load_bytecode 'types.pbc'
    load_bytecode 'symtable.pbc'
    load_bytecode 'arcall.pbc'
@@ -11,7 +11,7 @@
    load_bytecode 'builtins.pbc'
 .end
 
-.sub _main :main
+.sub '_main' :main
     .param pmc args
 
     ## register the sub _compile as the compilation function for Arc
@@ -65,28 +65,25 @@ error:
 the_end:        
 .end
 
-.sub file_to_string
+.sub 'file_to_string'
    .param string name
    .local pmc handle
    .local string res
    
-   handle = open name, 'r'
-   unless handle goto file_error
-loop:
-   unless handle goto end
-   $S0 = readline handle
-   res .= $S0
-   goto loop
-end:
-   close handle
+   handle = new 'FileHandle'
+   push_eh handler
+   res = handle.'readall'( name )
+   pop_eh
+   handle.'close'()
    .return (res)
-file_error:
-   close handle
-   die "File error"
-   .return ()
+handler:
+   .local pmc ex
+   .get_results (ex)
+   ex = "File error"
+   rethrow ex
 .end
 
-.sub _compile
+.sub '_compile'
    .param string src
    .local pmc code
       

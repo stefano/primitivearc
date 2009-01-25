@@ -120,7 +120,7 @@ ret_nil:
    .end
 .endm
 
-.call_error(arcall1, {.param pmc arg1})
-.call_error(arcall2, {.param pmc arg1
+.call_error('arcall1', {.param pmc arg1})
+.call_error('arcall2', {.param pmc arg1
                       .param pmc arg2})
-.call_error(arcall, {.param pmc args :slurpy})
+.call_error('arcall', {.param pmc args :slurpy})

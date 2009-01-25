@@ -37,7 +37,7 @@ sub get_cd {
     my $self = shift;
     my ( $options ) = @_;
 
-    return "$self->{relpath}/../primitivearc";
+    return "$self->{relpath}/languages/primitivearc";
 }
 
 # never skip
@@ -62,7 +62,7 @@ sub get_test_prog {
 
     return
         join( ' ',
-              "~/parrot/parrot",
+              "../../$self->{parrot}",
               'arc.pbc',
               $test_prog_args,
               $lang_fn );
