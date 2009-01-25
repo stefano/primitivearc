@@ -45,13 +45,9 @@ run_error:
     goto the_end
 eval_mode:
     $P0 = getstdin
-    .local pmc out
-    out = getstdout
 loop2:
     push_eh error # never give up
-    print out, "arc> "
-    out.'flush'()
-    $S0 = readline $P0
+    $S0 = $P0.'readline_interactive'( 'arc> ' )
     $P1 = _compile($S0)
     $P1()
     $P2 = get_hll_global '***'

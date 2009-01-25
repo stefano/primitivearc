@@ -152,7 +152,7 @@ end:
 
 .sub 'get1' :method
    $P0 = getattribute self, 'stream'
-   $S0 = read $P0, 1
+   $S0 = $P0.'read'(1)
    $I0 = $P0.'eof'()
    if $I0 goto end
    .return ($S0)
