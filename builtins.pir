@@ -4,22 +4,31 @@
 
 .include 'interpinfo.pasm' # for .INTERPINFO_CURRENT_CONT
 
-.sub 'err'
+.sub '_str_err'
    .param pmc what
    .local string msg
    msg = "\nWithin "
-   $P0 = new 'String'
-   $P0 = "Error: "
-   $P0 .= what
+   $S0 = "Error: "
+   $S1 = what
+   $S0 .= $S1
    ## construct the backtrace
    $P1 = interpinfo .INTERPINFO_CURRENT_CONT
+   $P1 = $P1.'continuation'() # skip one
 loop:
-   $P0 .= msg
+   $S0 .= msg
    msg = "\nCalled by "
-   $S0 = $P1.'caller'()
-   $P0 .= $S0
+   $S1 = $P1.'caller'()
+   $S0 .= $S1
    $P1 = $P1.'continuation'()
    if $P1 goto loop
+   .return ($S0)
+.end
+
+.sub 'err'
+   .param pmc what
+   $S0 = _str_err(what)
+   $P0 = new 'String'
+   set $P0, $S0
    die $P0
    .return ($P0)
 .end
@@ -385,19 +394,18 @@ end:
 
    $S0 = fname
    $P0 = new 'FileHandle'
-   push_eh handler
+   push_eh error
    $P0.'open'( $S0, direction )
    pop_eh
    setattribute io_obj, 'stream', $P0
    .return (io_obj)
-handler:
+error:
    .local pmc ex
    .get_results (ex)
    $S0 = "Can't open file: "
    $S1 = fname
    $S0 .= $S1
-#   can't call 'die' in an exception handler
-#   'err'($S0)
+   $S0 = _str_err($S0)
    ex = $S0
    rethrow ex
 .end
@@ -594,8 +602,11 @@ end:
    $P0 = get_hll_global 'nil'
    .return ($P0)
 error:
-   .get_results($P0)
-   .tailcall 'err'($P0)
+   .local pmc ex
+   .get_results(ex)
+   $S0 = _str_err(ex)
+   ex = $S0
+   rethrow ex
 .end
 
 .sub 'file-exists'
