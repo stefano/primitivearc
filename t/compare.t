@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 30;
+use Test::More tests => 51;
 use Parrot::Test;
 
 ## is
@@ -28,6 +28,30 @@ language_output_is('Arc', "(is "a" 'a)", "nil\n", 'is');
 language_output_is('Arc', '(is #\a "a")', "nil\n", 'is');
 language_output_is('Arc', '(is 1 1 1 1)', "t\n", 'is');
 language_output_is('Arc', '(is 1 1 1 2)', "nil\n", 'is');
+
+## iso
+language_output_is('Arc', '(iso)', "t\n", 'empty iso');
+language_output_is('Arc', '(iso nil)', "t\n", 'one arg iso');
+language_output_is('Arc', '(iso nil nil)', "t\n", 'iso');
+language_output_is('Arc', '(iso nil t)', "nil\n", 'iso');
+language_output_is('Arc', '(iso 1 nil)', "nil\n", 'iso');
+language_output_is('Arc', '(iso 1 t)', "nil\n", 'iso');
+language_output_is('Arc', '(iso 1 1)', "t\n", 'iso');
+language_output_is('Arc', '(iso 1 1.0)', "t\n", 'iso');
+language_output_is('Arc', '(iso 1 1.1)', "nil\n", 'iso');
+language_output_is('Arc', '(iso 2 1 2)', "nil\n", 'iso');
+language_output_is('Arc', '(iso 1 1 2)', "nil\n", 'iso');
+language_output_is('Arc', '(iso "a b c" "a b c")', "t\n", 'iso');
+language_output_is('Arc', "(iso 'a 'a)", "t\n", 'iso');
+language_output_is('Arc', "(iso 'a 'b)", "nil\n", 'iso');
+language_output_is('Arc', "(iso "a" 'a)", "nil\n", 'iso');
+language_output_is('Arc', '(iso #\a "a")', "nil\n", 'iso');
+language_output_is('Arc', '(iso 1 1 1 1)', "t\n", 'iso');
+language_output_is('Arc', '(iso 1 1 1 2)', "nil\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5) 6) '(1 2 (4 5) 6)", "t\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5)) '(1 2 (4 5) 6)", "nil\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5 6) 6) '(1 2 (4 5) 6)", "nil\n", 'iso');
+
 
 ## <
 language_output_is('Arc', '(<)', "t\n", '<');
