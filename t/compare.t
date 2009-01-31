@@ -28,6 +28,8 @@ language_output_is('Arc', "(is "a" 'a)", "nil\n", 'is');
 language_output_is('Arc', '(is #\a "a")', "nil\n", 'is');
 language_output_is('Arc', '(is 1 1 1 1)', "t\n", 'is');
 language_output_is('Arc', '(is 1 1 1 2)', "nil\n", 'is');
+language_output_is('Arc', '(is #\a #\a)', "t\n", 'is');
+language_output_is('Arc', '(is #\a #\A)', "nil\n", 'is');
 
 ## iso
 language_output_is('Arc', '(iso)', "t\n", 'empty iso');
@@ -48,6 +50,8 @@ language_output_is('Arc', "(iso "a" 'a)", "nil\n", 'iso');
 language_output_is('Arc', '(iso #\a "a")', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 1 1 1)', "t\n", 'iso');
 language_output_is('Arc', '(iso 1 1 1 2)', "nil\n", 'iso');
+language_output_is('Arc', '(iso #\a #\a)', "t\n", 'is');
+language_output_is('Arc', '(iso #\a #\A)', "nil\n", 'is');
 language_output_is('Arc', "(iso '(1 2 (4 5) 6) '(1 2 (4 5) 6)", "t\n", 'iso');
 language_output_is('Arc', "(iso '(1 2 (4 5)) '(1 2 (4 5) 6)", "nil\n", 'iso');
 language_output_is('Arc', "(iso '(1 2 (4 5 6) 6) '(1 2 (4 5) 6)", "nil\n", 'iso');
@@ -65,6 +69,8 @@ language_output_is('Arc', '(< 1 2 3 3)', "nil\n", '<');
 language_output_is('Arc', '(< 1 2 3.1 4)', "t\n", '<');
 language_output_is('Arc', '(< "abc" "bk" "cl" "cla")', "t\n", '<');
 language_output_is('Arc', '(< "abc" "bk" "al" "cla")', "nil\n", '<');
+language_output_is('Arc', '(< #\a #\b)', "t\n", '<');
+language_output_is('Arc', '(< #\a #\A)', "nil\n", '<');
 
 ## >
 language_output_is('Arc', '(>)', "t\n", '>');
@@ -78,3 +84,5 @@ language_output_is('Arc', '(> 5 4 3 3)', "nil\n", '>');
 language_output_is('Arc', '(> 5 4 3.1 2)', "t\n", '>');
 language_output_is('Arc', '(> "abc" "bk" "cl" "cla")', "nil\n", '>');
 language_output_is('Arc', '(> "abc" "bk" "al" "cla")', "nil\n", '>');
+language_output_is('Arc', '(> #\a #\b)', "nil\n", '>');
+language_output_is('Arc', '(> #\a #\A)', "t\n", '>');
