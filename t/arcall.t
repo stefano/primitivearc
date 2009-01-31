@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 70;
+use Test::More tests => 5;
 use Parrot::Test;
 
 language_output_is('Arc', '("abc" 2)', "#\\c\n", 'arcall on string');

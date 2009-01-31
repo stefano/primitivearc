@@ -9,7 +9,7 @@ use lib qw( . lib ../lib ../../lib );
 use Test::More tests => 4;
 use Parrot::Test;
 
-language_output_is('Arc', << 'CODE', 'RES', 'mac');
+language_output_is('Arc', << 'CODE', << 'RES', 'mac');
 (set r2
   (annotate 'mac
     (fn (x y)
@@ -19,7 +19,7 @@ CODE
 (42)
 RES
 
-language_output_is('Arc', << 'CODE', 'RES', 'mac');
+language_output_is('Arc', << 'CODE', << 'RES', 'mac');
 (set m1
   (annotate 'mac
     (fn (x)
@@ -33,7 +33,7 @@ CODE
 (91)
 RES
 
-language_output_is('Arc', << 'CODE', 'RES', 'macex1');
+language_output_is('Arc', << 'CODE', << 'RES', 'macex1');
 (set m1
   (annotate 'mac
     (fn (x)
@@ -47,7 +47,7 @@ CODE
 (m2 90)
 RES
 
-language_output_is('Arc', << 'CODE', 'RES', 'macex');
+language_output_is('Arc', << 'CODE', << 'RES', 'macex');
 (set m1
   (annotate 'mac
     (fn (x)
