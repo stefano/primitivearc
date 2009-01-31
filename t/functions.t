@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 8;
+use Test::More tests => 13;
 use Parrot::Test;
 
 language_output_is('Arc', '(fn ())', "#<function>\n", "simple fn");

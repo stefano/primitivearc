@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 51;
+use Test::More tests => 70;
 use Parrot::Test;
 
 ## is
