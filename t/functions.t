@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 13;
+use Test::More tests => 21;
 use Parrot::Test;
 
 language_output_is('Arc', '(fn ())', "#<function>\n", "simple fn");
@@ -66,3 +66,15 @@ language_output_is('Arc', << 'CODE', << 'RES', 'closure');
 CODE
 9
 RES
+
+## optional arguments
+language_output_is('Arc', '((fn (x (o y 1)) (+ x y)) 4)', "5\n", "opt arg");
+language_output_is('Arc', '((fn (x (o y 1)) (+ x y)) 4 5)', "9\n", "opt arg");
+language_output_is('Arc', '((fn (x (o y)) (cons x y)) 4)', "(4)\n", "opt arg");
+language_output_is('Arc', '((fn (x (o y)) (cons x y)) 4 5)', "(4 . 5)\n", "opt arg");
+language_output_is('Arc', '((fn ((o x 1) (o y 2)) (+ x y)))', "3\n", "opt arg");
+
+## destructuring
+language_output_is('Arc', "((fn ((x y) z) (list x y z)) '(1 2) 4)", "(1 2 4)\n", "destructuring");
+language_output_is('Arc', "((fn ((x . y) z) (list x y z)) '(1 2 3) 4)", "(1 (2 3) 4)\n", "destructuring");
+language_output_is('Arc', "((fn (z (x (y . w)) . r) (list z x y w r)) 0 '(1 (2 (3 . 4))) 5 6 7)", "(0 1 2 3 4 (5 6 7))\n", "destructuring");
