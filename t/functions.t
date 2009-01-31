@@ -10,6 +10,7 @@ use Test::More tests => 8;
 use Parrot::Test;
 
 language_output_is('Arc', '(fn ())', "#<function>\n", "simple fn");
+language_output_is('Arc', '(type (fn ()))', "'function\n", "type fn");
 language_output_is('Arc', '((fn (x) x) 9)', "9\n", "id fn");
 language_output_is('Arc', '((fn (x y) y) 1 2)', "2\n", "2 args fn");
 language_output_is('Arc', '((fn r r) 1 2 3)', "(1 2 3)\n", "rest arg fn");
@@ -49,4 +50,19 @@ language_output_is('Arc', << 'CODE', << 'RES', 'mutual recursion');
 (f 51)
 CODE
 2
+RES
+
+language_output_is('Arc', << 'CODE', << 'RES', 'closure');
+(set count 
+  (fn (n)
+    (fn (x)
+      (set n (+ n x)))))
+(set f (count 1))
+(set g (count 1))
+(f 78)
+(g 6)
+(f 100)
+(g 2)
+CODE
+9
 RES
