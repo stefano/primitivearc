@@ -82,11 +82,13 @@ error:
 .sub '_compile'
    .param string src
    .local pmc code
-      
-#   say "Compiling..."
-#   say src
+
+   ## wrap code in a function call to execute all expressions
+   $S0 = "((fn () "
+   $S0 .= src
+   $S0 .= "))"
    $P1 = new 'ReadStream'
-   $P1.'input'(src)
+   $P1.'input'($S0)
    $P0 = _read($P1)
    code = _tl_compile($P0)
    

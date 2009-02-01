@@ -325,7 +325,7 @@ is_apply:
    code.'emit'("(%, :flat)\n", args :flat)
    .return ()
 tail_apply:
-   code .= ".return "
+   code .= ".tailcall "
    code .= call_fn   
    code.'emit'("(%, :flat)\n", args :flat)
    .return ()

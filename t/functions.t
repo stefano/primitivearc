@@ -39,12 +39,12 @@ RES
 language_output_is('Arc', << 'CODE', << 'RES', 'mutual recursion');
 (set f
   (fn (n) 
-    (if (= n 0)
+    (if (is n 0)
       1 
       (g (- n 1)))))
 (set g
   (fn (n)
-    (if (= n 0)
+    (if (is n 0)
       2 
       (f (- n 1)))))
 (f 51)
