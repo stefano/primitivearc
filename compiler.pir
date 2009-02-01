@@ -287,7 +287,7 @@ args_emitted:
    goto args_emitted
 end_args:
    .local string call_fn
-   call_fn = "arcall"
+   call_fn = "'arcall'"
    $I0 = args
    $I0 -= 1
    if $I0 == 1 goto call1
@@ -308,7 +308,7 @@ do_call:
    code.'emit'("(%,)\n", args :flat)
    .return ()
 tail_call:
-   code .= ".return "
+   code .= ".tailcall "
    code .= call_fn
    code.'emit'("(%,)\n", args :flat)
    .return ()
