@@ -54,6 +54,32 @@ help:
 test: all
 	$(PERL) t/harness
 
+codetest: codetest-make codetest-perl codetest-pir
+
+T_MAKE  = config//makefiles//root.in
+T_PERL  = Configure.pl t//harness t//*.t lib//Parrot//Test//*.pm
+T_PIR   = *.pir
+
+codetest-make:
+	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_MAKE)
+	- $(PERL) @build_dir@/t/codingstd/make_code_coda.t $(T_MAKE)
+	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_MAKE)
+	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_MAKE)
+
+codetest-perl:
+	- $(PERL) @build_dir@/t/codingstd/cuddled_else.t $(T_PERL)
+	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_PERL)
+	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_PERL)
+	- $(PERL) @build_dir@/t/codingstd/perlcritic.t $(T_PERL)
+	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PERL)
+
+codetest-pir:
+	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_PIR)
+	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_PIR)
+	- $(PERL) @build_dir@/t/codingstd/pir_code_coda.t $(T_PIR)
+	- $(PERL) @build_dir@/t/codingstd/tabs.t $(T_PIR)
+	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PIR)
+
 TEST_CLEANUPS = \
   "t/*.arc" \
   "t/*.out"
@@ -70,3 +96,8 @@ realclean: clean
 	$(RM_F) Makefile
 
 distclean: realclean
+
+# Local variables:
+#   mode: makefile
+# End:
+# vim: ft=make:
