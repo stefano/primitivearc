@@ -115,20 +115,13 @@
    code = getattribute $P0, 'code'
    code.'emit'(".HLL 'Arc'")
    ## main function
-   code.'emit'(<<"END")
-.sub _main :anon
-##   load_bytecode 'types.pbc'
-##   load_bytecode 'symtable.pbc'
-##   load_bytecode 'arcall.pbc'
-##   load_bytecode 'compiler.pbc'
-##   load_bytecode 'read.pbc'
-END
-    _compile_expr($P0, expr, 0)
-    $S0 = $P0.'_pop'() # return register
-    ## put return value in global var '***
-    code.'emit'("set_hll_global '***', %0", $S0)
-    code.'emit'("   .return ()")
-    code.'emit'(".end")
+   code.'emit'(".sub _main :anon")
+   _compile_expr($P0, expr, 0)
+   $S0 = $P0.'_pop'() # return register
+   ## put return value in global var '***
+   code.'emit'("set_hll_global '***', %0", $S0)
+   code.'emit'("   .return ()")
+   code.'emit'(".end")
 
    ## initialization stuff
 loop:

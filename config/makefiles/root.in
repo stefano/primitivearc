@@ -4,27 +4,18 @@ PERL          = @perl@
 RM_F          = @rm_f@
 PARROT        = ../../parrot@exe@
 
-all: types.pbc symtable.pbc read.pbc arcall.pbc compiler.pbc builtins.pbc arc.pbc
+SOURCES = \
+  arc.pir \
+  arcall.pir \
+  builtins.pir \
+  compiler.pir \
+  read.pir \
+  symtable.pir \
+  types.pir
 
-types.pbc: types.pir
-	$(PARROT) -o types.pbc types.pir
+all: arc.pbc
 
-symtable.pbc: symtable.pir
-	$(PARROT) -o symtable.pbc symtable.pir
-
-read.pbc: read.pir types_macros.pir
-	$(PARROT) -o read.pbc read.pir
-
-arcall.pbc: arcall.pir
-	$(PARROT) -o arcall.pbc arcall.pir
-
-compiler.pbc: compiler.pir
-	$(PARROT) -o compiler.pbc compiler.pir
-
-builtins.pbc: builtins.pir
-	$(PARROT) -o builtins.pbc builtins.pir
-
-arc.pbc: arc.pir
+arc.pbc: $(SOURCES)
 	$(PARROT) -o arc.pbc arc.pir
 
 # regenerate the Makefile

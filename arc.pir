@@ -2,15 +2,6 @@
 
 .namespace [ ]
 
-.sub '_init' :anon :init :load
-   load_bytecode 'types.pbc'
-   load_bytecode 'symtable.pbc'
-   load_bytecode 'arcall.pbc'
-   load_bytecode 'compiler.pbc'
-   load_bytecode 'read.pbc'
-   load_bytecode 'builtins.pbc'
-.end
-
 .sub '_main' :main
     .param pmc args
 
@@ -97,3 +88,10 @@ error:
    $P1 = $P0(code)
    .return ($P1)
 .end
+
+.include 'languages/primitivearc/types.pir'
+.include 'languages/primitivearc/symtable.pir'
+.include 'languages/primitivearc/arcall.pir'
+.include 'languages/primitivearc/compiler.pir'
+.include 'languages/primitivearc/read.pir'
+.include 'languages/primitivearc/builtins.pir'
