@@ -1,7 +1,17 @@
 Makefile
+
 *.pbc
+*.c
+*.o
+*.obj
+*.iss
+*.exe
+arc
+installable_arc
+
 *.patch
 *.tar
 *.tar.gz
+
 t/*.arc
 t/*.out

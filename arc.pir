@@ -89,9 +89,9 @@ error:
    .return ($P1)
 .end
 
-.include 'languages/primitivearc/types.pir'
-.include 'languages/primitivearc/symtable.pir'
-.include 'languages/primitivearc/arcall.pir'
-.include 'languages/primitivearc/compiler.pir'
-.include 'languages/primitivearc/read.pir'
-.include 'languages/primitivearc/builtins.pir'
+.include 'types.pir'
+.include 'symtable.pir'
+.include 'arcall.pir'
+.include 'compiler.pir'
+.include 'read.pir'
+.include 'builtins.pir'

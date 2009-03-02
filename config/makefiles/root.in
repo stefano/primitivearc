@@ -1,10 +1,34 @@
 
-## Setup some commands
-PERL          = @perl@
-RM_F          = @rm_f@
-PARROT        = ../../parrot@exe@
+## arguments we want to run parrot with
+PARROT_ARGS   :=
 
-SOURCES = \
+## configuration settings
+VERSION       := @versiondir@
+BIN_DIR       := @bin_dir@
+LIB_DIR       := @lib_dir@$(VERSION)
+DOC_DIR       := @doc_dir@$(VERSION)
+MANDIR        := @mandir@$(VERSION)
+
+# Set up extensions
+O             := @o@
+
+## Setup some commands
+PERL          := @perl@
+CAT           := @cat@
+CHMOD         := @chmod@
+CP            := @cp@
+MKPATH        := @mkpath@
+RM_F          := @rm_f@
+RM_RF         := @rm_rf@
+POD2MAN       := pod2man
+#IF(parrot_is_shared and not(cygwin or win32)):export LD_RUN_PATH := @blib_dir@:$(LD_RUN_PATH)
+PARROT        := $(BIN_DIR)/parrot@exe@
+PBC_TO_EXE    := $(BIN_DIR)/pbc_to_exe@exe@
+#IF(darwin):
+#IF(darwin):# MACOSX_DEPLOYMENT_TARGET must be defined for OS X compilation/linking
+#IF(darwin):export MACOSX_DEPLOYMENT_TARGET := @osx_version@
+
+SOURCES := \
   arc.pir \
   arcall.pir \
   builtins.pir \
@@ -13,12 +37,38 @@ SOURCES = \
   symtable.pir \
   types.pir
 
-all: arc.pbc
+DOCS := README
+
+BUILD_CLEANUPS := \
+  arc.pbc \
+  "*.c" \
+  "*$(O)" \
+  arc@exe@ \
+#IF(win32):  parrot-arc.exe \
+#IF(win32):  parrot-primitivearc.iss \
+#IF(win32):  "setup-parrot-*.exe" \
+  installable_arc@exe@
+
+TEST_CLEANUPS := \
+  "t/*.arc" \
+  "t/*.out"
+
+# the default target
+build: arc.pbc
+
+all: build arc@exe@ installable
 
 arc.pbc: $(SOURCES)
 	$(PARROT) -o arc.pbc arc.pir
 
-# regenerate the Makefile
+arc@exe@: arc.pbc
+	$(PBC_TO_EXE) arc.pbc
+
+installable: installable_arc@exe@
+
+installable_arc@exe@: arc.pbc
+	$(PBC_TO_EXE) arc.pbc --install
+
 Makefile: config/makefiles/root.in
 	$(PERL) Configure.pl
 
@@ -27,10 +77,16 @@ help:
 	@echo ""
 	@echo "Following targets are available for the user:"
 	@echo ""
-	@echo "  all:               Compile all *.pbc"
+	@echo "  build:             primitivearc.pbc"
 	@echo "                     This is the default."
+	@echo "  arc@exe@            Self-hosting binary not to be installed."
+	@echo "  all:               arc.pbc arc@exe@ installable"
+	@echo "  installable:       Create libs and self-hosting binaries to be installed."
+	@echo "  install:           Install the installable targets and docs."
+	@echo ""
 	@echo "Testing:"
 	@echo "  test:              Run the test suite."
+	@echo "  test-installable:  Test self-hosting targets."
 	@echo "  testclean:         Clean up test results."
 	@echo ""
 	@echo "Cleaning:"
@@ -42,8 +98,12 @@ help:
 	@echo "  help:              Print this help message."
 	@echo ""
 
-test: all
+test: build
 	$(PERL) t/harness
+
+# basic run for missing libs
+test-installable: installable
+	echo "1" | ./installable_primitivearc@exe@
 
 codetest: codetest-make codetest-perl codetest-pir
 
@@ -71,20 +131,40 @@ codetest-pir:
 	- $(PERL) @build_dir@/t/codingstd/tabs.t $(T_PIR)
 	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PIR)
 
-TEST_CLEANUPS = \
-  "t/*.arc" \
-  "t/*.out"
+
+install: installable
+	$(CP) installable_arc@exe@ $(BIN_DIR)/parrot-arc@exe@
+	$(CHMOD) 0755 $(BIN_DIR)/parrot-arc@exe@
+	-$(MKPATH) $(LIB_DIR)/languages/primitivearc
+	$(CP) arc.pbc $(LIB_DIR)/languages/primitivearc/arc.pbc
+#	-$(MKPATH) $(MANDIR)/man1
+#	$(POD2MAN) arc.pir > $(MANDIR)/man1/parrot-arc.1
+	-$(MKPATH) $(DOC_DIR)/languages/primitivearc
+	$(CP) $(DOCS) $(DOC_DIR)/languages/primitivearc
+
+uninstall:
+	$(RM_F) $(BIN_DIR)/parrot-arc@exe@
+	$(RM_RF) $(LIB_DIR)/languages/primitivearc
+#	$(RM_F) $(MANDIR)/man1/parrot-primitivearc.1
+	$(RM_RF) $(DOC_DIR)/languages/primitivearc
+
+win32-inno-installer: installable
+#	-$(MKPATH) man/man1
+#	$(POD2MAN) arc.pir > man/man1/parrot-arc.1
+#	-$(MKPATH) man/html
+#	pod2html --infile arc.pir --outfile man/html/parrot-arc.html
+	$(CP) installable_arc@exe@ parrot-arc.exe
+	$(PERL) $(LIB_DIR)/tools/dev/mk_inno_language.pl primitivearc
+	iscc parrot-primitivearc.iss
 
 testclean:
 	$(RM_F) $(TEST_CLEANUPS)
 
-CLEANUPS = "*.pbc"
+clean:
+	$(RM_F) $(TEST_CLEANUPS) $(BUILD_CLEANUPS)
 
-clean: testclean
-	$(RM_F) $(CLEANUPS)
-
-realclean: clean
-	$(RM_F) Makefile
+realclean:
+	$(RM_F) $(TEST_CLEANUPS) $(BUILD_CLEANUPS) Makefile
 
 distclean: realclean
 
@@ -92,3 +172,4 @@ distclean: realclean
 #   mode: makefile
 # End:
 # vim: ft=make:
+
