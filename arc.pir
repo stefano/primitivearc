@@ -2,13 +2,18 @@
 
 .namespace [ ]
 
+.sub '__onload' :init
+   ## load dynamic PMCs
+   loadlib $P0, 'primitivearc_group'
+.end
+
 .sub '_main' :main
     .param pmc args
 
     ## register the sub _compile as the compilation function for Arc
     $P0 = get_hll_global '_compile'
     compreg 'Arc', $P0
-
+    
     ## for every file in the command line, compile it
     .local pmc iter
     iter = new 'Iterator', args

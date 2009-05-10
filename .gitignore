@@ -15,3 +15,5 @@ installable_arc
 
 t/*.arc
 t/*.out
+
+*~

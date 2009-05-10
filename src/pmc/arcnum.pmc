@@ -1,0 +1,12 @@
+pmclass ArcNum 
+  extends Float
+  dynpmc
+  group primitivearc_group
+  hll Arc
+  maps Float {
+
+	VTABLE INTVAL get_bool() {
+		return 1;
+	}
+
+}

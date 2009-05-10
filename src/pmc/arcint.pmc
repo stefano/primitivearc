@@ -1,0 +1,12 @@
+pmclass ArcInt 
+  extends Integer
+  dynpmc
+  group primitivearc_group
+  hll Arc
+  maps Integer {
+
+	VTABLE INTVAL get_bool() {
+		return 1;
+	}
+
+}

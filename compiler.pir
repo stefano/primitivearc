@@ -214,11 +214,11 @@ str:
    code.'emit'("%0 = %1\n", out_reg, $S1)
    .return ()
 int_num:
-   code.'emit'("%0 = new 'Integer'\n", out_reg)
+   code.'emit'("%0 = new 'ArcInt'\n", out_reg)
    code.'emit'("%0 = %1\n", out_reg, expr)
    .return ()
 float_num:	
-   code.'emit'("%0 = new 'Float'\n", out_reg)
+   code.'emit'("%0 = new 'ArcNum'\n", out_reg)
    code.'emit'("%0 = %1\n", out_reg, expr)
    .return ()
 var_ref: # variable reference
@@ -592,12 +592,8 @@ not_a_sym_err:
    $P2 = cdr(expr)
    $P2 = car($P2) # then part
    _compile_expr(cs, $P1, 0) # compile the test (never tail)
-   $S0 = cs.'_push'()
-   code.'emit'("%0 = get_hll_global 'nil'", $S0)
-   cs.'_pop'()
    $S1 = cs.'_pop'()
-   code.'emit'("$I0 = issame %0, %1", $S0, $S1)
-   code.'emit'("if $I0 goto %0", else)
+   code.'emit'("unless %0 goto %1", $S1, else)
    ## then emission
    _compile_expr(cs, $P2, is_tail) # tail if 'if expression is in tail
    $S0 = cs.'_pop'() # take result  

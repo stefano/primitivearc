@@ -63,7 +63,7 @@ sub get_test_prog {
     return
         join( ' ',
               "parrot",
-              'arc.pbc',
+              'primitivearc.pbc',
               $test_prog_args,
               $lang_fn );
 }

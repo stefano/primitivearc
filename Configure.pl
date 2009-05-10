@@ -1,16 +1,43 @@
 # $Id$
-# Copyright (C) 2009, The Perl Foundation.
+
+=head1 NAME
+
+Configure.pl - a configure script for a high level language running on Parrot
+
+=head1 SYNOPSIS
+
+  perl Configure.pl --help
+
+  perl Configure.pl
+
+  perl Configure.pl --parrot_config=<path_to_parrot>
+
+  perl Configure.pl --gen-parrot [ -- --options-for-configure-parrot ]
+
+=cut
 
 use strict;
 use warnings;
 use 5.008;
 
+use Getopt::Long qw(:config auto_help);
+
+our ( $opt_parrot_config, $opt_gen_parrot);
+GetOptions( 'parrot_config=s', 'gen-parrot' );
+
+#  Update/generate parrot build if needed
+if ($opt_gen_parrot) {
+    system($^X, 'build/gen_parrot.pl', @ARGV);
+}
+
 #  Get a list of parrot-configs to invoke.
-my @parrot_config_exe = (
-    'parrot/parrot_config',
-    '../../parrot_config',
-    'parrot_config',
-);
+my @parrot_config_exe = $opt_parrot_config
+                      ? ( $opt_parrot_config )
+                      : (
+                          'parrot/parrot_config',
+                          '../../parrot_config',
+                          'parrot_config',
+                        );
 
 #  Get configuration information from parrot_config
 my %config = read_parrot_config(@parrot_config_exe);
@@ -43,9 +70,9 @@ sub read_parrot_config {
 sub create_makefiles {
     my %config = @_;
     my %makefiles = (
-        'config/makefiles/root.in' => 'Makefile',
-#        'config/makefiles/pmc.in'  => 'src/pmc/Makefile',
-#        'config/makefiles/ops.in'  => 'src/ops/Makefile',
+        'build/Makefile.in'         => 'Makefile',
+        'build/src/pmc/Makefile.in' => 'src/pmc/Makefile',
+        'build/src/ops/Makefile.in' => 'src/ops/Makefile',
     );
     my $build_tool = $config{libdir} . $config{versiondir}
                    . '/tools/dev/gen_makefile.pl';
@@ -63,3 +90,4 @@ sub create_makefiles {
 #   fill-column: 100
 # End:
 # vim: expandtab shiftwidth=4:
+

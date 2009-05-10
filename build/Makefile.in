@@ -1,3 +1,4 @@
+## $Id$
 
 ## arguments we want to run parrot with
 PARROT_ARGS   :=
@@ -10,9 +11,18 @@ DOC_DIR       := @doc_dir@$(VERSION)
 MANDIR        := @mandir@$(VERSION)
 
 # Set up extensions
+LOAD_EXT      := @load_ext@
 O             := @o@
 
+# Various paths
+PERL6GRAMMAR  := $(LIB_DIR)/library/PGE/Perl6Grammar.pbc
+NQP           := $(LIB_DIR)/languages/nqp/nqp.pbc
+PCT           := $(LIB_DIR)/library/PCT.pbc
+PMC_DIR       := src/pmc
+OPS_DIR       := src/ops
+
 ## Setup some commands
+MAKE          := @make_c@
 PERL          := @perl@
 CAT           := @cat@
 CHMOD         := @chmod@
@@ -28,6 +38,15 @@ PBC_TO_EXE    := $(BIN_DIR)/pbc_to_exe@exe@
 #IF(darwin):# MACOSX_DEPLOYMENT_TARGET must be defined for OS X compilation/linking
 #IF(darwin):export MACOSX_DEPLOYMENT_TARGET := @osx_version@
 
+PRIMITIVEARC_GROUP := $(PMC_DIR)/primitivearc_group$(LOAD_EXT)
+PRIMITIVEARC_OPS := $(OPS_DIR)/primitivearc_ops$(LOAD_EXT)
+
+PMC_DEPS := build/src/pmc/Makefile.in \
+  $(PMC_DIR)/arcint.pmc \
+  $(PMC_DIR)/arcnum.pmc
+
+OPS_DEPS := build/src/ops/Makefile.in $(OPS_DIR)/primitivearc.ops
+
 SOURCES := \
   arc.pir \
   arcall.pir \
@@ -37,39 +56,49 @@ SOURCES := \
   symtable.pir \
   types.pir
 
+BUILTINS_PIR :=
+
 DOCS := README
 
 BUILD_CLEANUPS := \
-  arc.pbc \
+  "*.pbc" \
+  "src/gen_*.pir" \
   "*.c" \
   "*$(O)" \
-  arc@exe@ \
-#IF(win32):  parrot-arc.exe \
+  primitivearc@exe@ \
+#IF(win32):  parrot-primitivearc.exe \
 #IF(win32):  parrot-primitivearc.iss \
 #IF(win32):  "setup-parrot-*.exe" \
-  installable_arc@exe@
+  installable_primitivearc@exe@
 
-TEST_CLEANUPS := \
-  "t/*.arc" \
-  "t/*.out"
+TEST_CLEANUPS :=
 
 # the default target
-build: arc.pbc
+build: \
+  $(PRIMITIVEARC_OPS) \
+  $(PRIMITIVEARC_GROUP) \
+  primitivearc.pbc
 
-all: build arc@exe@ installable
+all: build primitivearc@exe@ installable
 
-arc.pbc: $(SOURCES)
-	$(PARROT) -o arc.pbc arc.pir
+primitivearc.pbc: $(SOURCES)
+	$(PARROT) $(PARROT_ARGS) -o primitivearc.pbc arc.pir
 
-arc@exe@: arc.pbc
-	$(PBC_TO_EXE) arc.pbc
+primitivearc@exe@: primitivearc.pbc
+	$(PBC_TO_EXE) primitivearc.pbc
 
-installable: installable_arc@exe@
+$(PRIMITIVEARC_GROUP): $(PMC_DEPS)
+	$(MAKE) $(PMC_DIR)
 
-installable_arc@exe@: arc.pbc
-	$(PBC_TO_EXE) arc.pbc --install
+$(PRIMITIVEARC_OPS): $(OPS_DEPS)
+	$(MAKE) $(OPS_DIR)
 
-Makefile: config/makefiles/root.in
+installable: installable_primitivearc@exe@
+
+installable_primitivearc@exe@: primitivearc.pbc
+	$(PBC_TO_EXE) primitivearc.pbc --install
+
+Makefile: build/Makefile.in
 	$(PERL) Configure.pl
 
 # This is a listing of all targets, that are meant to be called by users
@@ -79,8 +108,8 @@ help:
 	@echo ""
 	@echo "  build:             primitivearc.pbc"
 	@echo "                     This is the default."
-	@echo "  arc@exe@            Self-hosting binary not to be installed."
-	@echo "  all:               arc.pbc arc@exe@ installable"
+	@echo "  primitivearc@exe@      Self-hosting binary not to be installed."
+	@echo "  all:               primitivearc.pbc primitivearc@exe@ installable"
 	@echo "  installable:       Create libs and self-hosting binaries to be installed."
 	@echo "  install:           Install the installable targets and docs."
 	@echo ""
@@ -99,71 +128,52 @@ help:
 	@echo ""
 
 test: build
-	$(PERL) -I$(LIB_DIR)/tools/lib t/harness
+	$(PERL) -I$(LIB_DIR)/tools/lib t/harness #--bindir=$(BIN_DIR)
 
 # basic run for missing libs
 test-installable: installable
 	echo "1" | ./installable_primitivearc@exe@
 
-codetest: codetest-make codetest-perl codetest-pir
-
-T_MAKE  = config//makefiles//root.in
-T_PERL  = Configure.pl t//harness t//*.t lib//Parrot//Test//*.pm
-T_PIR   = *.pir
-
-codetest-make:
-	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_MAKE)
-	- $(PERL) @build_dir@/t/codingstd/make_code_coda.t $(T_MAKE)
-	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_MAKE)
-	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_MAKE)
-
-codetest-perl:
-	- $(PERL) @build_dir@/t/codingstd/cuddled_else.t $(T_PERL)
-	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_PERL)
-	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_PERL)
-	- $(PERL) @build_dir@/t/codingstd/perlcritic.t $(T_PERL)
-	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PERL)
-
-codetest-pir:
-	- $(PERL) @build_dir@/t/codingstd/filenames.t $(T_PIR)
-	- $(PERL) @build_dir@/t/codingstd/linelength.t $(T_PIR)
-	- $(PERL) @build_dir@/t/codingstd/pir_code_coda.t $(T_PIR)
-	- $(PERL) @build_dir@/t/codingstd/tabs.t $(T_PIR)
-	- $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PIR)
-
-
 install: installable
-	$(CP) installable_arc@exe@ $(BIN_DIR)/parrot-arc@exe@
-	$(CHMOD) 0755 $(BIN_DIR)/parrot-arc@exe@
+	$(MAKE) $(OPS_DIR) install
+	$(MAKE) $(PMC_DIR) install
+	$(CP) installable_primitivearc@exe@ $(BIN_DIR)/parrot-primitivearc@exe@
+	$(CHMOD) 0755 $(BIN_DIR)/parrot-primitivearc@exe@
 	-$(MKPATH) $(LIB_DIR)/languages/primitivearc
-	$(CP) arc.pbc $(LIB_DIR)/languages/primitivearc/arc.pbc
+	$(CP) primitivearc.pbc $(LIB_DIR)/languages/primitivearc/primitivearc.pbc
 #	-$(MKPATH) $(MANDIR)/man1
-#	$(POD2MAN) arc.pir > $(MANDIR)/man1/parrot-arc.1
-	-$(MKPATH) $(DOC_DIR)/languages/primitivearc
-	$(CP) $(DOCS) $(DOC_DIR)/languages/primitivearc
+#	$(POD2MAN) doc/running.pod > $(MANDIR)/man1/parrot-primitivearc.1
+#	-$(MKPATH) $(DOC_DIR)/languages/primitivearc
+#	$(CP) $(DOCS) $(DOC_DIR)/languages/primitivearc
 
 uninstall:
-	$(RM_F) $(BIN_DIR)/parrot-arc@exe@
+	$(MAKE) $(OPS_DIR) uninstall
+	$(MAKE) $(PMC_DIR) uninstall
+	$(RM_F) $(BIN_DIR)/parrot-primitivearc@exe@
 	$(RM_RF) $(LIB_DIR)/languages/primitivearc
 #	$(RM_F) $(MANDIR)/man1/parrot-primitivearc.1
-	$(RM_RF) $(DOC_DIR)/languages/primitivearc
+#	$(RM_RF) $(DOC_DIR)/languages/primitivearc
 
 win32-inno-installer: installable
 #	-$(MKPATH) man/man1
-#	$(POD2MAN) arc.pir > man/man1/parrot-arc.1
+#	$(POD2MAN) doc/running.pod > man/man1/parrot-primitivearc.1
 #	-$(MKPATH) man/html
-#	pod2html --infile arc.pir --outfile man/html/parrot-arc.html
-	$(CP) installable_arc@exe@ parrot-arc.exe
-	$(PERL) $(LIB_DIR)/tools/dev/mk_inno_language.pl primitivearc
+#	pod2html --infile doc/running.pod --outfile man/html/parrot-primitivearc.html
+	$(CP) installable_primitivearc@exe@ parrot-primitivearc.exe
+	$(PERL) -I$(LIB_DIR)/tools/lib $(LIB_DIR)/tools/dev/mk_inno_language.pl primitivearc
 	iscc parrot-primitivearc.iss
 
 testclean:
 	$(RM_F) $(TEST_CLEANUPS)
 
 clean:
+	$(MAKE) $(OPS_DIR) clean
+	$(MAKE) $(PMC_DIR) clean
 	$(RM_F) $(TEST_CLEANUPS) $(BUILD_CLEANUPS)
 
 realclean:
+	$(MAKE) $(OPS_DIR) realclean
+	$(MAKE) $(PMC_DIR) realclean
 	$(RM_F) $(TEST_CLEANUPS) $(BUILD_CLEANUPS) Makefile
 
 distclean: realclean
