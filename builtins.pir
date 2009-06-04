@@ -348,7 +348,8 @@ end:
 .sub 'prn'
    .param pmc what
 
-   say what
+	 $S0 = what.'to_string'()
+   say $S0
 
    .return (what)
 .end

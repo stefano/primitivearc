@@ -97,7 +97,7 @@ too_large:
    ## !! this means, for example, that a string containing "(1 2)"
    ## !! is considered the same as the list (1 2)
    ## !! TODO: add a character (e.g. #\') at the start of a string
-   ## !! when used as a key to discriminate it 
+   ## !! when used as a key to discriminate it
    $P0 = table[key]
    if_null $P0, ret_nil # not found
    .return ($P0)

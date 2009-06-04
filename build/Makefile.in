@@ -18,12 +18,14 @@ O             := @o@
 PERL6GRAMMAR  := $(LIB_DIR)/library/PGE/Perl6Grammar.pbc
 NQP           := $(LIB_DIR)/languages/nqp/nqp.pbc
 PCT           := $(LIB_DIR)/library/PCT.pbc
+PM_DIR        := $(LIB_DIR)/library
 PMC_DIR       := src/pmc
 OPS_DIR       := src/ops
 
 ## Setup some commands
 MAKE          := @make_c@
 PERL          := @perl@
+PROVE         := @perl@ -I@build_dir@/lib
 CAT           := @cat@
 CHMOD         := @chmod@
 CP            := @cp@
@@ -177,6 +179,34 @@ realclean:
 	$(RM_F) $(TEST_CLEANUPS) $(BUILD_CLEANUPS) Makefile
 
 distclean: realclean
+
+codetest: codetest-make codetest-perl codetest-pir
+
+T_MAKE  = build/Makefile.in build/src/pmc/Makefile.in build/src/ops/Makefile.in
+T_PERL  = Configure.pl t/harness t/*.t lib/Parrot/Test/*.pm
+T_PIR   = *.pir
+
+codetest-make:
+	 $(PROVE) @build_dir@/t/codingstd/filenames.t $(T_MAKE)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/make_code_coda.t $(T_MAKE)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/linelength.t $(T_MAKE)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/trailing_space.t $(T_MAKE)
+
+codetest-perl:
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/cuddled_else.t $(T_PERL)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/filenames.t $(T_PERL)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/linelength.t $(T_PERL)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/perlcritic.t $(T_PERL)
+	 $(PERL) -I$(LIB_DIR)/tools/lib @build_dir@/t/codingstd/trailing_space.t $(T_PERL)
+
+codetest-pir:
+	 $(PERL) @build_dir@/t/codingstd/filenames.t $(T_PIR)
+	 $(PERL) @build_dir@/t/codingstd/linelength.t $(T_PIR)
+	 $(PERL) @build_dir@/t/codingstd/pir_code_coda.t $(T_PIR)
+	 $(PERL) @build_dir@/t/codingstd/tabs.t $(T_PIR)
+	 $(PERL) @build_dir@/t/codingstd/trailing_space.t $(T_PIR)
+
+
 
 # Local variables:
 #   mode: makefile

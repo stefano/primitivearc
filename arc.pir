@@ -33,7 +33,7 @@ loop:
     goto loop
 end:
     $P1 = get_hll_global '***'
-    say $P1
+		'prn'($P1)
     goto the_end
 run_error:
     .get_results($P2)
@@ -48,7 +48,7 @@ loop2:
     $P1()
     $P2 = get_hll_global '***'
     #print ' -> '
-    say $P2
+    'prn'($P2)
     goto loop2
 error:
     .get_results($P2)
