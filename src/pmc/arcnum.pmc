@@ -9,4 +9,20 @@ pmclass ArcNum
 		return 1;
 	}
 
+	VTABLE STRING* get_string() {
+		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
+											 "attempt to use an %Ss where an ArcStr is expected", VTABLE_name(INTERP, SELF));
+	}
+
+	VTABLE INTVAL get_integer() {
+		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
+																"attempt to use an %Ss where an ArcInt is expected", VTABLE_name(INTERP, SELF));
+	}
+
+	METHOD to_string() {
+		const FLOATVAL n = SELF.get_number();
+		STRING *res = Parrot_sprintf_c(INTERP, "%f", n);
+		RETURN(STRING *res);
+	}
+
 }

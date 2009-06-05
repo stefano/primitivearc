@@ -1,0 +1,27 @@
+pmclass ArcStr
+  extends String
+  dynpmc
+  group primitivearc_group
+  hll Arc
+  maps String {
+
+	VTABLE INTVAL get_bool() {
+		return 1;
+	}
+
+	VTABLE FLOATVAL get_number() {
+		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
+											 "attempt to use an %Ss where an ArcNum is expected", VTABLE_name(INTERP, SELF));
+	}
+
+	VTABLE INTVAL get_integer() {
+		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
+											 "attempt to use an %Ss where an ArcInt is expected", VTABLE_name(INTERP, SELF));
+	}
+
+	METHOD to_string() {
+		STRING *res = SELF.get_string();
+		RETURN(STRING *res);
+	}
+
+}
