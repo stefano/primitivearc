@@ -46,7 +46,9 @@ PRIMITIVEARC_OPS := $(OPS_DIR)/primitivearc_ops$(LOAD_EXT)
 PMC_DEPS := build/src/pmc/Makefile.in \
   $(PMC_DIR)/arcint.pmc \
   $(PMC_DIR)/arcnum.pmc \
-	$(PMC_DIR)/arcstr.pmc
+	$(PMC_DIR)/arcstr.pmc \
+	$(PMC_DIR)/arcsym.pmc \
+	$(PMC_DIR)/arct.pmc
 
 OPS_DEPS := build/src/ops/Makefile.in $(OPS_DIR)/primitivearc.ops
 

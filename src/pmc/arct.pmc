@@ -1,0 +1,37 @@
+static void call_type_err(PARROT_INTERP, PMC *self, const char *expected) {
+	PMC *err = Parrot_find_global_cur(interp,
+																		Parrot_str_new_constant(interp, "err"));
+	STRING *msg = Parrot_sprintf_c(interp, "attempt to use an %Ss where an %s is expected", VTABLE_name(interp, self), expected);
+	Parrot_call_sub(interp, err, "vS", msg);
+}
+
+pmclass ArcT
+  dynpmc
+  group primitivearc_group
+  hll Arc {
+
+	VTABLE INTVAL get_bool() {
+		return 1;
+	}
+
+	VTABLE STRING* get_string() {
+		call_type_err(INTERP, SELF, "ArcStr");
+		return NULL;
+	}
+
+	VTABLE FLOATVAL get_number() {
+		call_type_err(INTERP, SELF, "ArcNum");
+		return 0;
+	}
+
+	VTABLE INTVAL get_integer() {
+		call_type_err(INTERP, SELF, "ArcInt");
+		return 0;
+	}
+
+	METHOD to_string() {
+		STRING *res = Parrot_str_new_constant(INTERP, "t");
+		RETURN(STRING *res);
+	}
+
+}

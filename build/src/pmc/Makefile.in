@@ -43,13 +43,17 @@ PRIMITIVEARC_GROUP := primitivearc_group
 PMC_SOURCES := \
   arcint.pmc \
   arcnum.pmc \
-	arcstr.pmc
+	arcstr.pmc \
+	arcsym.pmc \
+	arct.pmc
 
 OBJS := \
   lib-$(PRIMITIVEARC_GROUP)$(O) \
   arcint$(O) \
   arcnum$(O) \
-	arcstr$(O)
+	arcstr$(O) \
+	arcsym$(O) \
+	arct$(O)
 
 CLEANUPS := \
   "*$(LOAD_EXT)" \
@@ -76,6 +80,8 @@ compile: generate
 	$(CC) $(CC_OUT)arcint$(O) $(INCLUDES) $(CFLAGS) arcint.c
 	$(CC) $(CC_OUT)arcnum$(O) $(INCLUDES) $(CFLAGS) arcnum.c
 	$(CC) $(CC_OUT)arcstr$(O) $(INCLUDES) $(CFLAGS) arcstr.c
+	$(CC) $(CC_OUT)arcsym$(O) $(INCLUDES) $(CFLAGS) arcsym.c
+	$(CC) $(CC_OUT)arct$(O) $(INCLUDES) $(CFLAGS) arct.c
 	$(CC) $(CC_OUT)lib-$(PRIMITIVEARC_GROUP)$(O) $(INCLUDES) $(CFLAGS) $(PRIMITIVEARC_GROUP).c
 
 linklibs: compile

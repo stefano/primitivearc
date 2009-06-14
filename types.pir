@@ -18,9 +18,8 @@
    $P1 = new 'Nil'
    set_hll_global 'nil', $P1
    
-   $P0 = newclass 'T'
-   $P1 = new 'T'
-   set_hll_global 't', $P1
+   $P0 = new 'ArcT'
+   set_hll_global 't', $P0
 
    ## Annotated
 

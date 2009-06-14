@@ -1,22 +1,13 @@
 pmclass ArcNum 
+  extends ArcT
   extends Float
   dynpmc
   group primitivearc_group
   hll Arc
   maps Float {
 
-	VTABLE INTVAL get_bool() {
-		return 1;
-	}
-
-	VTABLE STRING* get_string() {
-		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
-											 "attempt to use an %Ss where an ArcStr is expected", VTABLE_name(INTERP, SELF));
-	}
-
-	VTABLE INTVAL get_integer() {
-		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
-																"attempt to use an %Ss where an ArcInt is expected", VTABLE_name(INTERP, SELF));
+	VTABLE FLOATVAL get_num() {
+		return Parrot_Float_get_num(INTERP, SELF);
 	}
 
 	METHOD to_string() {

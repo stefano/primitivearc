@@ -1,0 +1,19 @@
+pmclass ArcSym
+  extends ArcT
+  need_ext
+  dynpmc
+  group primitivearc_group
+  hll Arc {
+
+	ATTR STRING *repr;
+
+	METHOD to_string() {
+		STRING *res = PARROT_ARCSYM(SELF)->repr;
+		RETURN(STRING *res);
+	}
+
+	METHOD set_repr(STRING *repr) {
+		PARROT_ARCSYM(SELF)->repr = repr;
+	}
+
+}

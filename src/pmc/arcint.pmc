@@ -1,23 +1,19 @@
 pmclass ArcInt 
+  extends ArcT
   extends Integer
   dynpmc
   group primitivearc_group
   hll Arc
   maps Integer {
 
-	VTABLE INTVAL get_bool() {
-		return 1;
-	}
-
-	VTABLE STRING* get_string() {
-		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
-											 "attempt to use an %Ss where an ArcStr is expected", VTABLE_name(INTERP, SELF));
-	}
-
 	METHOD to_string() {
 		const INTVAL i = SELF.get_integer();
 		STRING *res = Parrot_sprintf_c(INTERP, "%d", i);
 		RETURN(STRING *res);
+	}
+
+	VTABLE INTVAL get_integer() {
+		return Parrot_Integer_get_integer(INTERP, SELF);
 	}
 
 }
