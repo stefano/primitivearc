@@ -21,11 +21,8 @@
    $P0 = get_hll_global 'symbol-table'
    $I0 = exists $P0[str]
    if $I0 goto exst
-   $P1 = new 'Symbol'
-   $P1 = 2
-   $P1[0] = str
-   $P2 = get_hll_global 'nil'
-   $P1[1] = $P2
+   $P1 = new 'ArcSym'
+   $P1.'set_repr'(str)
    $P0[str] = $P1
    goto end
 
@@ -44,10 +41,7 @@ end:
    $S1 .= $S0
    $P0 += 1
    set_hll_global 'gensym-count', $P0
-   $P1 = new 'Symbol'
-   $P1 = 2
-   $P1[0] = $S1
-   $P2 = get_hll_global 'nil'
-   $P1[1] = $P2
+   $P1 = new 'ArcSym'
+   $P1.'set_repr'($S1)
    .return ($P1)
 .end

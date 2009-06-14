@@ -48,7 +48,9 @@ PMC_DEPS := build/src/pmc/Makefile.in \
   $(PMC_DIR)/arcnum.pmc \
 	$(PMC_DIR)/arcstr.pmc \
 	$(PMC_DIR)/arcsym.pmc \
-	$(PMC_DIR)/arct.pmc
+	$(PMC_DIR)/arct.pmc \
+	$(PMC_DIR)/arcnil.pmc \
+	$(PMC_DIR)/arccons.pmc
 
 OPS_DEPS := build/src/ops/Makefile.in $(OPS_DIR)/primitivearc.ops
 

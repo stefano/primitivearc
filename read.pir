@@ -290,7 +290,7 @@ fail:
    $I0 = _str_made_of($S0, "0123456789.", from)
    unless $I0 goto mk_symbol
    ## now we're sure we've got a float
-   $P0 = new 'Float'
+   $P0 = new 'ArcNum'
    $N0 = $S0 # type conversion
    $P0 = $N0
    .return ($P0)
@@ -298,7 +298,7 @@ try_integer:
    ## try to parse an int
    $I0 = _str_made_of($S0, "0123456789", from)
    unless $I0 goto mk_symbol
-   $P0 = new 'Integer'
+   $P0 = new 'ArcInt'
    $I0 = $S0 # type conversion
    $P0 = $I0
    .return ($P0)
@@ -464,11 +464,11 @@ go_on:
 .sub 'ssexpand'
    .param pmc sym
 
-   .check_type(sym, 'Symbol')
+   .check_type(sym, 'ArcSym')
    .local pmc tbl
    tbl = get_hll_global 'ssyntax-table*'
    $I0 = -1
-   $S0 = sym
+   $S0 = sym.'to_string'()
    $I1 = length $S0
 loop:
    $I0 = $I0 + 1

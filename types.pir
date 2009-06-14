@@ -6,11 +6,11 @@
 
    ## Cons cell
    
-   $P0 = subclass 'Array', 'Cons'
+#   $P0 = subclass 'Array', 'Cons'
    
    ## Symbol 
 
-   $P0 = subclass 'Array', 'Symbol'
+#   $P0 = subclass 'Array', 'Symbol'
 
    ## Nil & T
 
@@ -192,45 +192,59 @@ end:
    .param pmc car
    .param pmc cdr
 
-   $P0 = new 'Cons'
-   $P0 = 2
-   $P0[0] = car
-   $P0[1] = cdr
-
+   #$P0 = new 'Cons'
+   #$P0 = 2
+   #$P0[0] = car
+   #$P0[1] = cdr
+	 $P0 = new 'ArcCons'
+	 $P0.'scar'(car)
+	 $P0.'scdr'(cdr)
+	 	 
    .return ($P0)
 .end
 
 .sub 'car'
    .param pmc cell
-   $P0 = get_hll_global 'nil'
-   $I0 = issame $P0, cell
-   if $I0 goto final
-   $P0 = cell[0]
-final:
-   .return ($P0)
+#   $P0 = get_hll_global 'nil'
+#   $I0 = issame $P0, cell
+#   if $I0 goto final
+#   $P0 = cell[0]
+#final:
+																				#   .return ($P0)
+#	 $S0 = cell.'to_string'()
+																				#	 say $S0
+	 $P0 = cell.'car'()
+	 #$S0 = $P0.'to_string'()
+	 #say $S0
+																				#.tailcall cell.'car'()
+	 .return ($P0)
 .end
 
 .sub 'scar'
    .param pmc cell
    .param pmc val
-   cell[0] = val
+																				#cell[0] = val
+	 cell.'scar'(val)
    .return (val)
 .end
 
 .sub 'cdr'
    .param pmc cell
-   $P0 = get_hll_global 'nil'
-   $I0 = issame $P0, cell
-   if $I0 goto final
-   $P0 = cell[1]
-final:
-   .return ($P0)
+#   $P0 = get_hll_global 'nil'
+#   $I0 = issame $P0, cell
+#   if $I0 goto final
+#   $P0 = cell[1]
+#final:
+	 $P0 = cell.'cdr'()
+	 .return ($P0)
+	 #.tailcall cell.'cdr'()
 .end
 
 .sub 'scdr'
    .param pmc cell
    .param pmc val
-   cell[1] = val
+																				#cell[1] = val
+	 cell.'scdr'(val)
    .return (val)
 .end
 

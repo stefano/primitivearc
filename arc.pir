@@ -22,7 +22,7 @@
     ## default value for ***
     $P1 = get_hll_global 'nil'
     set_hll_global '***', $P1
-    push_eh run_error
+#    push_eh run_error
 loop:
     unless iter goto end 
     $S0 = shift iter
@@ -42,7 +42,7 @@ run_error:
 eval_mode:
     $P0 = getstdin
 loop2:
-    push_eh error # never give up
+#    push_eh error # never give up
     $S0 = $P0.'readline_interactive'( 'arc> ' )
     $P1 = _compile($S0)
     $P1()

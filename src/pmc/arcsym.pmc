@@ -7,6 +7,11 @@ pmclass ArcSym
 
 	ATTR STRING *repr;
 
+	VTABLE void init() {
+		Parrot_ArcSym_attributes *u = mem_allocate_zeroed_typed(Parrot_ArcSym_attributes);
+		PMC_data(SELF) = u;
+	}
+
 	METHOD to_string() {
 		STRING *res = PARROT_ARCSYM(SELF)->repr;
 		RETURN(STRING *res);
