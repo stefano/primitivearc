@@ -2,6 +2,9 @@
 ; compile an s-expr into PIR code
 ; code is emitted on stdout
 
+(def cdddr (x)
+  (cdr:cdr:cdr x))
+
 ; hold compiler state
 
 (def empty-state () (listtab '((reg 0) (lex nil))))
@@ -33,7 +36,6 @@
 (def tl-compile (e)
   (with ((fns consts expr) (collect-fns-and-consts (mac-ex e) nil "" nil)
          cs (empty-state))
-    (prn fns consts expr)
     ; entry function
     (prn ".HLL 'Arc'")
     (prn ".sub _main :anon")
@@ -57,9 +59,12 @@
     (case (type e)
       nil (prn out-reg " = get_hll_global 'nil'")
       t (prn out-reg " = get_hll_global 't'")
-      str (prn out-reg " = " (escape e))
+      string (do
+               (prn out-reg " = new 'ArcStr'")
+               (pr out-reg " = ") (write e) (prn))
       int (prn out-reg " = " e)
       num (prn out-reg " = " e)
+      char (prn out-reg " = \"" e "\"") 
       sym (if (alex cs e)
             (prn out-reg " = find_lex '" e "'")
             (prn out-reg " = get_hll_global '" e "'"))
@@ -78,9 +83,9 @@
 (def compile-call (cs e out-reg is-tail is-apply)
   ; compile function args
   (each arg e
-    (compile-expr cs e nil))
-  (with (args (map0-n [c-pop cs] (len e)) ; pop args registers
-         arcall (case (len e)
+    (compile-expr cs arg nil))
+  (with (args (rev (map [c-pop cs] e)) ; pop args registers
+         arcall (case (- (len e) 1) ; don't count function
                   1 "arcall1"
                   2 "arcall2"
                   ; else
@@ -91,8 +96,8 @@
     (if is-tail
       (pr ".tailcall " arcall "(")
       (pr out-reg " = " arcall "("))
-    (each arg args
-      (pr arg ","))
+    (each arg (intersperse ", " args)
+      (pr arg))
     (if is-apply
       (prn " :flat)")
       (prn ")"))))
@@ -121,19 +126,24 @@
 (def compile-seq (cs seq)
   (if (no seq)
     (compile-expr cs nil t)
-    (each e seq
-      ; TODO: pass t instead of nil if last expression in seq
-      (compile-expr cs e nil)
-      (c-pop cs)))) ; discard ret. value
+    ((afn (e)
+       (if 
+         (no e) nil
+         (no (cdr e)) ; last expression
+           (compile-expr cs (car e) t)
+         (do
+           (compile-expr cs (car e) nil)
+           (c-pop cs) ; discard ret. value
+           (self (cdr e))))) seq)))
 
 (def collect-args (args)
   (if
     (no args)
       nil
     (and args (no (acons args))) ; rest arg
-      (listtab `((arg ,args) (type rest) (rep ,(uniq)))
+      (list (listtab `((arg ,args) (type rest) (rep ,(uniq)))))
     (cons (listtab `((arg ,(car args)) (type normal) (rep ,(uniq))))
-          (collect-args (cdr args))))))
+          (collect-args (cdr args)))))
 
 ; compiles a global function expression
 ; takes a fn-info object
@@ -227,22 +237,27 @@
 (def mk-fn (expr outer)
   (listtab `((expr ,expr) (outer ,outer))))
 
+(def arg-names (args)
+  (if (no (acons args))
+    (list args)
+    (makeproper args)))
+
 ; !! probably incorrect
 (def collect-fns-and-consts (expr lex outer is-seq)
   (if
     (isa expr 'sym) 
       (list nil nil expr)
-    (or (in (type expr) 'int 'num 'str) (aquote expr))
+    (or (in (type expr) 'int 'num 'char 'string) (aquote expr))
       (let name (uniq)
         (list nil (list (mk-const name expr)) name))
     (a-fn expr)
       (with (name (uniq)
-             args (makeproper expr.1)
+             args expr.1
              body (cddr expr))
         (let (fns consts expr) (collect-fns-and-consts 
-                                  body (join args lex) name t)
-          (list (cons (mk-fn `($fn ,name ,args ,@expr) outer) fns) 
-                consts `($function ,name))))
+                                  body (join (arg-names args) lex) name t)
+          (list (cons (mk-fn `($fn ,name ,args ,@expr) outer) fns)
+                consts `(,(if (iso outer "") '$function '$closure) ,name))))
     (let res (map [collect-fns-and-consts _ lex outer nil] expr)
       (let res (apply map list res)
         (list (apply join res.0) (apply join res.1) res.2)))))

@@ -9,7 +9,9 @@
 
 .sub '_main' :main
     .param pmc args
-
+		.local int is_pir
+		is_pir = 0
+		
     ## register the sub _compile as the compilation function for Arc
     $P0 = get_hll_global '_compile'
     compreg 'Arc', $P0
@@ -27,8 +29,19 @@ loop:
     unless iter goto end 
     $S0 = shift iter
     if $S0 == '-e' goto eval_mode # enter evaluation mode
+		unless $S0 == '-pir' goto go_on
+		$S0 = shift iter
+		is_pir = 1
+go_on:
+		say $S0
     $S0 = file_to_string($S0)
+		unless is_pir goto compile_arc
+		$P0 = compreg 'PIR'
+		$P0 = $P0($S0)
+		goto run
+compile_arc:		
     $P0 = _compile($S0)
+run:		
     $P0() # run the just compiled bytecode
     goto loop
 end:
