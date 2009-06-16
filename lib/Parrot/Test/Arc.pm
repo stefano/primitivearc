@@ -62,8 +62,9 @@ sub get_test_prog {
 
     return
         join( ' ',
-              "parrot",
-              'primitivearc.pbc',
+#              "primitivearc",
+							'./test.sh',
+#              'primitivearc.pbc',
               $test_prog_args,
               $lang_fn );
 }

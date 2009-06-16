@@ -6,14 +6,18 @@ pmclass ArcNum
   hll Arc
   maps Float {
 
-	VTABLE FLOATVAL get_num() {
-		return Parrot_Float_get_num(INTERP, SELF);
+	VTABLE FLOATVAL get_number() {
+		return Parrot_Float_get_number(INTERP, SELF);
 	}
 
 	METHOD to_string() {
 		const FLOATVAL n = SELF.get_number();
 		STRING *res = Parrot_sprintf_c(INTERP, "%f", n);
 		RETURN(STRING *res);
+	}
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "num");
 	}
 
 }

@@ -46,35 +46,26 @@ loop:
    $I0 += 1
    goto loop
 end:
-   $P0 = new 'Integer'
-   $P0 = $I0
-   .return ($P0)
+   .return ($I0)
 .end
 
-.sub 'len' :multi(Nil)
+.sub 'len' :multi(ArcNil)
    .param pmc thenil
-   $P0 = new 'Integer'
-   $P0 = 0
-   .return ($P0)
+   .return (0)
 .end
 
 .sub 'len' :multi(Hash)
    .param pmc h
-
    $I0 = h
-   $P0 = new 'Integer'
-   $P0 = $I0
-   .return ($P0)
+   .return ($I0)
 .end
 
-.sub 'len' :multi(String)
+.sub 'len' :multi(ArcStr)
    .param pmc s
 
    $S0 = s
    $I0 = length $S0
-   $P0 = new 'Integer'
-   $P0 = $I0
-   .return ($P0)
+   .return ($I0)
 .end
 
 ## arithmethic
@@ -99,41 +90,41 @@ zero_args:
       .return (0)
    .end
 
-   .sub .name :multi(Integer, Integer)
+   .sub .name :multi(ArcInt, ArcInt)
       .param int i1
       .param int i2
       $I0 = i1 .op i2
       .return ($I0)
    .end
    
-   .sub .name :multi(Integer, Float)
+   .sub .name :multi(ArcInt, ArcNum)
       .param int i1
       .param num i2
       $N0 = i1 .op i2
       .return ($N0)
    .end
 
-   .sub .name :multi(Float, Integer)
+   .sub .name :multi(ArcNum, ArcInt)
       .param num i1
       .param int i2
       $N0 = i1 .op i2
       .return ($N0)
    .end
 
-   .sub .name  :multi(Float, Float)
+   .sub .name  :multi(ArcNum, ArcNum)
       .param num i1
       .param num i2
       $N0 = i1 .op i2
       .return ($N0)
    .end
 
-   .sub .name :multi(Integer)
+   .sub .name :multi(ArcInt)
      .param int i
      $I0 = 0 .op i
      .return ($I0)
   .end
 
-  .sub .name :multi(Float)
+  .sub .name :multi(ArcNum)
      .param num i
      $N0 = 0 .op i
      .return ($N0)
@@ -204,8 +195,8 @@ error:
    $S0 = typeof a
    $S1 = typeof b
    unless $S0 == $S1 goto no
-   if $S0 == 'Integer' goto value_compare
-   if $S0 == 'Float' goto value_compare
+   if $S0 == 'ArcInt' goto value_compare
+   if $S0 == 'ArcNum' goto value_compare
    if $S0 == 'String' goto value_compare
    
 adress_compare:
@@ -238,10 +229,10 @@ true:
 
 .macro wcmp(name, op)
    .defcmp(.name, .op, String, String, string)
-   .defcmp(.name, .op, Integer, Integer, int)
-   .defcmp(.name, .op, Integer, Float, num)
-   .defcmp(.name, .op, Float, Integer, num)
-   .defcmp(.name, .op, Float, Float, num)
+   .defcmp(.name, .op, ArcInt, ArcInt, int)
+   .defcmp(.name, .op, ArcInt, ArcNum, num)
+   .defcmp(.name, .op, ArcNum, ArcInt, num)
+   .defcmp(.name, .op, ArcNum, ArcNum, num)
 
    .sub .name :multi(_, _)
       .param pmc a1
@@ -580,7 +571,7 @@ end:
    .param pmc cmd
    $S0 = cmd
    $I0 = spawnw $S0
-   $P0 = new 'Integer'
+   $P0 = new 'ArcInt'
    $P0 = $I0
    .return ($P0)
 .end

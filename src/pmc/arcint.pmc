@@ -7,13 +7,17 @@ pmclass ArcInt
   maps Integer {
 
 	METHOD to_string() {
-		const INTVAL i = SELF.get_integer();
+		const INTVAL i = VTABLE_get_integer(INTERP, SELF);
 		STRING *res = Parrot_sprintf_c(INTERP, "%d", i);
 		RETURN(STRING *res);
 	}
 
 	VTABLE INTVAL get_integer() {
 		return Parrot_Integer_get_integer(INTERP, SELF);
+	}
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "int");
 	}
 
 }

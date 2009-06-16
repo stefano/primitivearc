@@ -75,10 +75,10 @@ too_large:
    .tailcall 'err'("Index too large!")
 .end
 
-.sub arcall1 :multi(String)
+.sub arcall1 :multi(ArcStr)
    .param pmc str
    .param pmc pos
-   $P0 = new 'String'
+   $P0 = new 'ArcChar'
    $S0 = str[pos]
    $P0 = $S0
    .return ($P0)
@@ -98,7 +98,8 @@ too_large:
    ## !! is considered the same as the list (1 2)
    ## !! TODO: add a character (e.g. #\') at the start of a string
    ## !! when used as a key to discriminate it
-   $P0 = table[key]
+	 $S0 = key.'to_string'()
+   $P0 = table[$S0]
    if_null $P0, ret_nil # not found
    .return ($P0)
 ret_nil:	

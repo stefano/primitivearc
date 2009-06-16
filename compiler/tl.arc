@@ -1,5 +1,5 @@
 ; command line compilation
 
-(load "comp.arc")
+(load "compiler/comp.arc")
 
-(tl-compile (readall (stdin)))
+(tl-compile `((fn () ,@(readall (stdin)))))

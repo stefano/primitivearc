@@ -12,6 +12,10 @@ pmclass ArcSym
 		PMC_data(SELF) = u;
 	}
 
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "sym");
+	}
+
 	METHOD to_string() {
 		STRING *res = PARROT_ARCSYM(SELF)->repr;
 		RETURN(STRING *res);

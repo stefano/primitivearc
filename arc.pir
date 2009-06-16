@@ -33,7 +33,6 @@ loop:
 		$S0 = shift iter
 		is_pir = 1
 go_on:
-		say $S0
     $S0 = file_to_string($S0)
 		unless is_pir goto compile_arc
 		$P0 = compreg 'PIR'

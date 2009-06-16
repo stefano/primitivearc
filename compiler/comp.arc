@@ -31,6 +31,12 @@
 (def alex (cs s)
   (mem s cs!lex))
 
+(def e-type (e)
+  (if 
+    (is e t) t
+    (in e nil '()) nil
+    (type e)))
+
 ; expression compiler
 
 (def tl-compile (e)
@@ -53,18 +59,38 @@
     (prn ".return ()")
     (prn ".end")))
 
+(let escape-table (listtab '((#\newline "\\n")
+                             (#\\ "\\\\")
+                             (#\tab "\\t")
+                             (#\" "\\\"")))
+  (def pr-escape (x)
+    (each c (coerce x 'cons)
+      (aif (escape-table c)
+        (pr it)
+        (pr c)))))
+
 ; compile a single expression
 (def compile-expr (cs e is-tail)
   (let out-reg (c-push cs)
-    (case (type e)
+    (case (e-type e)
       nil (prn out-reg " = get_hll_global 'nil'")
       t (prn out-reg " = get_hll_global 't'")
       string (do
                (prn out-reg " = new 'ArcStr'")
-               (pr out-reg " = ") (write e) (prn))
-      int (prn out-reg " = " e)
-      num (prn out-reg " = " e)
-      char (prn out-reg " = \"" e "\"") 
+               (pr out-reg " = \"") 
+               (pr-escape e)
+               (prn "\""))
+      int (do 
+            (prn out-reg " = new 'ArcInt'") 
+            (prn out-reg " = " e))
+      num (do
+            (prn out-reg " = new 'ArcNum'") 
+            (prn out-reg " = " e))
+      char (do 
+             (prn out-reg " = new 'ArcChar'")
+             (pr out-reg " = \"")
+             (pr-escape (string e))
+             (prn  "\""))
       sym (if (alex cs e)
             (prn out-reg " = find_lex '" e "'")
             (prn out-reg " = get_hll_global '" e "'"))
@@ -104,15 +130,17 @@
 
 (def compile-const (cs const)
   (let emit-const (afn (e)
-                    (case (type e)
-                      sym (prn (c-push cs) " = 'intern'('" e "')")
-                      cons (do
-                             (self (car e))
-                             (self (cdr e))
-                             (with (a (c-pop cs) b (c-pop cs))
-                               (prn (c-push cs) " = 'cons'(" a "," b ")")))
-                      ; else
-                      (compile-expr cs e nil)))
+                    (if (aquote e)
+                      (self (cadr e))
+                      (case (e-type e)
+                        sym (prn (c-push cs) " = 'intern'('" e "')")
+                        cons (do
+                               (self (car e))
+                               (self (cdr e))
+                               (with (a (c-pop cs) b (c-pop cs))
+                                 (prn (c-push cs) " = 'cons'(" b "," a ")")))
+                        ; else
+                        (compile-expr cs e nil))))
     (emit-const const!expr)
     (prn "set_hll_global '" const!name "', " (c-pop cs))))
 
@@ -247,7 +275,7 @@
   (if
     (isa expr 'sym) 
       (list nil nil expr)
-    (or (in (type expr) 'int 'num 'char 'string) (aquote expr))
+    (or (in (e-type expr) 'int 'num 'char 'string) (aquote expr))
       (let name (uniq)
         (list nil (list (mk-const name expr)) name))
     (a-fn expr)

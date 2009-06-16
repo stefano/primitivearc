@@ -1,4 +1,5 @@
 pmclass ArcStr
+  extends ArcT
   extends String
   dynpmc
   group primitivearc_group
@@ -9,14 +10,18 @@ pmclass ArcStr
 		return 1;
 	}
 
-	VTABLE FLOATVAL get_number() {
-		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
-											 "attempt to use an %Ss where an ArcNum is expected", VTABLE_name(INTERP, SELF));
+	VTABLE STRING* get_string() {
+		return Parrot_String_get_string(INTERP, SELF);
 	}
 
-	VTABLE INTVAL get_integer() {
-		Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_ILL_INHERIT,
-											 "attempt to use an %Ss where an ArcInt is expected", VTABLE_name(INTERP, SELF));
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "string");
+	}
+
+	METHOD escape() {
+		STRING *res = SELF.get_string();
+		res = Parrot_str_escape(INTERP, res);
+		RETURN(STRING *res);		
 	}
 
 	METHOD to_string() {

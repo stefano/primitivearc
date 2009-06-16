@@ -43,6 +43,7 @@ PRIMITIVEARC_GROUP := primitivearc_group
 PMC_SOURCES := \
   arcint.pmc \
   arcnum.pmc \
+	arcchar.pmc \
 	arcstr.pmc \
 	arcsym.pmc \
 	arct.pmc \
@@ -53,6 +54,7 @@ OBJS := \
   lib-$(PRIMITIVEARC_GROUP)$(O) \
   arcint$(O) \
   arcnum$(O) \
+	arcchar$(O) \
 	arcstr$(O) \
 	arcsym$(O) \
 	arct$(O) \
@@ -83,6 +85,7 @@ generate: $(PMC_SOURCES)
 compile: generate
 	$(CC) $(CC_OUT)arcint$(O) $(INCLUDES) $(CFLAGS) arcint.c
 	$(CC) $(CC_OUT)arcnum$(O) $(INCLUDES) $(CFLAGS) arcnum.c
+	$(CC) $(CC_OUT)arcchar$(O) $(INCLUDES) $(CFLAGS) arcchar.c
 	$(CC) $(CC_OUT)arcstr$(O) $(INCLUDES) $(CFLAGS) arcstr.c
 	$(CC) $(CC_OUT)arcsym$(O) $(INCLUDES) $(CFLAGS) arcsym.c
 	$(CC) $(CC_OUT)arct$(O) $(INCLUDES) $(CFLAGS) arct.c

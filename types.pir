@@ -6,17 +6,12 @@
 
    ## Cons cell
    
-#   $P0 = subclass 'Array', 'Cons'
-   
-   ## Symbol 
-
-#   $P0 = subclass 'Array', 'Symbol'
+   $P0 = subclass 'ArcCons', 'Cons'
 
    ## Nil & T
 
-   $P0 = newclass 'Nil'
-   $P1 = new 'Nil'
-   set_hll_global 'nil', $P1
+   $P0 = new 'ArcNil'
+   set_hll_global 'nil', $P0
    
    $P0 = new 'ArcT'
    set_hll_global 't', $P0
@@ -59,28 +54,36 @@
 
 .namespace ['Cons']
 
-.sub 'get_string' :vtable :method
+.sub 'name' :vtable :method
+	 .return ("cons")
+.end
+
+.sub 'to_string' :method
    .local string str
-      
+	 .local pmc nil
+	 
    str = "("
-   $S0 = self[0]
+	 $P0 = self.'car'()
+   $S0 = $P0.'to_string'()
    str .= $S0
    $P0 = self # $P0 holds current cons cell
-   $P2 = get_hll_global 'nil'
+   nil = get_hll_global 'nil'
 cdr_to_str:
-   $P1 = $P0[1]
-   $I3 = issame $P1, $P2
+   $P1 = $P0.'cdr'()
+   $I3 = issame $P1, nil
    if $I3 goto end # check if the list is finished
    $S1 = typeof $P1 # type of the cdr
    if $S1 == 'Cons' goto to_list # is it another cons?
    str .= " . "
-   $S0 = $P0[1]
+	 $P2 = $P0.'cdr'()
+   $S0 = $P2.'to_string'()
    str .= $S0 # add the non-cons object and finish
    goto end
 to_list:
    str .= " "
-   $P0 = $P0[1] # advance to next cons cell
-   $S0 = $P0[0]
+   $P0 = $P0.'cdr'() # advance to next cons cell
+	 $P2 = $P0.'car'()
+   $S0 = $P2.'to_string'()
    str .= $S0 # add the car
    goto cdr_to_str
 end:
@@ -89,28 +92,9 @@ end:
    .return (str)
 .end
 
-.namespace ['Symbol']
-
-.sub 'get_string' :vtable :method
-   $S0 = self[0]
-   .return ($S0)
-.end
-
-.namespace ['Nil']
-
-.sub 'get_string' :vtable :method
-   .return("nil")
-.end
-
-.namespace ['T']
-
-.sub 'get_string' :vtable :method
-   .return("t")
-.end
-
 .namespace ['Tagged']
 
-.sub 'get_string' :vtable :method
+.sub 'to_string' :method
    $S0 = "#3(tagged "
    $S1 = self[0]
    $S0 .= $S1
@@ -123,7 +107,7 @@ end:
 
 .namespace ['Inport']
 
-.sub 'get_string' :vtable :method
+.sub 'get_string' :method
    .return ("#<input port>")
 .end
 
@@ -162,25 +146,25 @@ end:
 
 .namespace ['Outport']
 
-.sub 'get_string' :vtable :method
+.sub 'to_string' :method
    .return ("#<output port>")
 .end
 
 .namespace ['Eof']
 
-.sub 'get_string' :vtable :method
+.sub 'to_string' :method
    .return ("#<eof>")
 .end
 
 .namespace ['Socketport']
 
-.sub 'get_string' :vtable :method
+.sub 'to_string' :method
    .return ("#<socket>")
 .end
 
 .namespace ['Thread']
 
-.sub 'get_string' :vtable :method
+.sub 'to_string' :method
    .return ("#<thread>")
 .end
 
@@ -192,11 +176,7 @@ end:
    .param pmc car
    .param pmc cdr
 
-   #$P0 = new 'Cons'
-   #$P0 = 2
-   #$P0[0] = car
-   #$P0[1] = cdr
-	 $P0 = new 'ArcCons'
+	 $P0 = new 'Cons'
 	 $P0.'scar'(car)
 	 $P0.'scdr'(cdr)
 	 	 
@@ -205,45 +185,26 @@ end:
 
 .sub 'car'
    .param pmc cell
-#   $P0 = get_hll_global 'nil'
-#   $I0 = issame $P0, cell
-#   if $I0 goto final
-#   $P0 = cell[0]
-#final:
-																				#   .return ($P0)
-#	 $S0 = cell.'to_string'()
-																				#	 say $S0
-	 $P0 = cell.'car'()
-	 #$S0 = $P0.'to_string'()
-	 #say $S0
-																				#.tailcall cell.'car'()
+ 	 $P0 = cell.'car'()
 	 .return ($P0)
 .end
 
 .sub 'scar'
    .param pmc cell
    .param pmc val
-																				#cell[0] = val
 	 cell.'scar'(val)
    .return (val)
 .end
 
 .sub 'cdr'
    .param pmc cell
-#   $P0 = get_hll_global 'nil'
-#   $I0 = issame $P0, cell
-#   if $I0 goto final
-#   $P0 = cell[1]
-#final:
 	 $P0 = cell.'cdr'()
 	 .return ($P0)
-	 #.tailcall cell.'cdr'()
 .end
 
 .sub 'scdr'
    .param pmc cell
    .param pmc val
-																				#cell[1] = val
 	 cell.'scdr'(val)
    .return (val)
 .end
@@ -330,12 +291,13 @@ end:
    .param pmc val
    .param pmc key
 
-   h[key] = val
+	 $S0 = key.'to_string'()
+   h[$S0] = val
 
    .return (val)
 .end
 
-.sub 'sref' :multi(String)
+.sub 'sref' :multi(ArcStr)
    .param pmc str
    .param pmc val
    .param pmc ind
@@ -357,9 +319,9 @@ type_err2:
    .param pmc cell
    .param pmc val
    .param pmc ind
-   
+
    $S0 = typeof ind
-   unless $S0 == 'Integer' goto type_err
+   unless $S0 == 'ArcInt' goto type_err
    
    .local pmc nil
    $I0 = ind
@@ -386,7 +348,6 @@ type_err:
    .param pmc what
    $S0 = typeof what
    if $S0 == 'Tagged' goto tagged
-   $S0 = downcase $S0
    .tailcall 'intern'($S0)
 tagged:
    $P0 = what[0]

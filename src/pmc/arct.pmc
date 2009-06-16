@@ -29,6 +29,10 @@ pmclass ArcT
 		return 0;
 	}
 
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "t");
+	}
+
 	METHOD to_string() {
 		STRING *res = Parrot_str_new_constant(INTERP, "t");
 		RETURN(STRING *res);
