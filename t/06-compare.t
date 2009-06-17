@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 69;
+use Test::More tests => 71;
 use Parrot::Test;
 
 ## is
@@ -17,11 +17,12 @@ language_output_is('Arc', '(is nil t)', "nil\n", 'is');
 language_output_is('Arc', '(is 1 nil)', "nil\n", 'is');
 language_output_is('Arc', '(is 1 t)', "nil\n", 'is');
 language_output_is('Arc', '(is 1 1)', "t\n", 'is');
-language_output_is('Arc', '(is 1 1.0)', "t\n", 'is');
+language_output_is('Arc', '(is 1 1.0)', "nil\n", 'is');
 language_output_is('Arc', '(is 1 1.1)', "nil\n", 'is');
 language_output_is('Arc', '(is 2 1 2)', "nil\n", 'is');
 language_output_is('Arc', '(is 1 1 2)', "nil\n", 'is');
 language_output_is('Arc', '(is "a b c" "a b c")', "t\n", 'is');
+language_output_is('Arc', '(is "a b c" "a b_c")', "nil\n", 'is');
 language_output_is('Arc', "(is 'a 'a)", "t\n", 'is');
 language_output_is('Arc', "(is 'a 'b)", "nil\n", 'is');
 language_output_is('Arc', "(is \"a\" 'a)", "nil\n", 'is');
@@ -30,6 +31,7 @@ language_output_is('Arc', '(is 1 1 1 1)', "t\n", 'is');
 language_output_is('Arc', '(is 1 1 1 2)', "nil\n", 'is');
 language_output_is('Arc', '(is #\a #\a)', "t\n", 'is');
 language_output_is('Arc', '(is #\a #\A)', "nil\n", 'is');
+language_output_is('Arc', '(is #\a #\b)', "nil\n", 'is');
 
 ## iso
 language_output_is('Arc', '(iso)', "t\n", 'empty iso');
@@ -52,9 +54,9 @@ language_output_is('Arc', '(iso 1 1 1 1)', "t\n", 'iso');
 language_output_is('Arc', '(iso 1 1 1 2)', "nil\n", 'iso');
 language_output_is('Arc', '(iso #\a #\a)', "t\n", 'is');
 language_output_is('Arc', '(iso #\a #\A)', "nil\n", 'is');
-language_output_is('Arc', "(iso '(1 2 (4 5) 6) '(1 2 (4 5) 6)", "t\n", 'iso');
-language_output_is('Arc', "(iso '(1 2 (4 5)) '(1 2 (4 5) 6)", "nil\n", 'iso');
-language_output_is('Arc', "(iso '(1 2 (4 5 6) 6) '(1 2 (4 5) 6)", "nil\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5) 6) '(1 2 (4 5) 6))", "t\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5)) '(1 2 (4 5) 6))", "nil\n", 'iso');
+language_output_is('Arc', "(iso '(1 2 (4 5 6) 6) '(1 2 (4 5) 6))", "nil\n", 'iso');
 
 
 ## <

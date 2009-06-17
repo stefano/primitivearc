@@ -162,7 +162,7 @@ zero_args:
    .local pmc nil
    nil = get_hll_global 'nil'
    $P0 = new 'Iterator', args
-   unless $P0 goto error
+   unless $P0 goto yes
    $P1 = shift $P0
    $P2 = shift $P0
 loop:
@@ -178,8 +178,6 @@ yes:
    .return ($P0)
 no:
    .return (nil)
-error:
-   .tailcall 'err'("is needs at least one argument!")
 .end
 
 .sub 'is' :multi(PMC)
@@ -198,6 +196,7 @@ error:
    if $S0 == 'int' goto value_compare
    if $S0 == 'num' goto value_compare
    if $S0 == 'string' goto value_compare
+	 if $S0 == 'char' goto value_compare
    
 adress_compare:
    $I0 = issame a, b
