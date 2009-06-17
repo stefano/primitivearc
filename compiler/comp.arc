@@ -262,8 +262,8 @@
 (def mk-const (name expr)
   (listtab `((name ,name) (expr ,expr))))
 
-(def mk-fn (expr outer)
-  (listtab `((expr ,expr) (outer ,outer))))
+(def mk-fn (expr outer lex)
+  (listtab `((expr ,expr) (outer ,outer) (lex ,lex))))
 
 (def arg-names (args)
   (if (no (acons args))
@@ -279,12 +279,12 @@
       (let name (uniq)
         (list nil (list (mk-const name expr)) name))
     (a-fn expr)
-      (with (name (uniq)
-             args expr.1
-             body (cddr expr))
-        (let (fns consts expr) (collect-fns-and-consts 
-                                  body (join (arg-names args) lex) name t)
-          (list (cons (mk-fn `($fn ,name ,args ,@expr) outer) fns)
+      (withs (name (uniq)
+              args expr.1
+              body (cddr expr)
+              new-lex (join (arg-names args) lex))
+        (let (fns consts expr) (collect-fns-and-consts body new-lex name t)
+          (list (cons (mk-fn `($fn ,name ,args ,@expr) outer new-lex) fns)
                 consts `(,(if (iso outer "") '$function '$closure) ,name))))
     (let res (map [collect-fns-and-consts _ lex outer nil] expr)
       (let res (apply map list res)

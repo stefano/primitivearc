@@ -96,9 +96,16 @@ too_large:
    ## !! Parrot transforms key in a string to make the hash
    ## !! this means, for example, that a string containing "(1 2)"
    ## !! is considered the same as the list (1 2)
-   ## !! TODO: add a character (e.g. #\') at the start of a string
-   ## !! when used as a key to discriminate it
+	 $S0 = typeof key
+	 unless $S0 == 'string' goto tostring
+	 $S0 = "\""
+	 $S1 = key
+	 $S0 .= $S1
+	 $S0 .= "\""
+	 goto go
+tostring:	
 	 $S0 = key.'to_string'()
+go:			
    $P0 = table[$S0]
    if_null $P0, ret_nil # not found
    .return ($P0)

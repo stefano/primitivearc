@@ -20,6 +20,9 @@
 
    $P0 = subclass 'Array', 'Tagged'
 
+	 ## hash
+	 $P0 = subclass 'Hash', 'ArcHash'
+	 
    ## I/O ports
 
    $P0 = newclass 'Inport'
@@ -52,6 +55,16 @@
    .return ()
 .end
 
+.namespace ['ArcHash']
+
+.sub 'name' :vtable
+	 .return ("hash")
+.end
+
+.sub 'to_string' :method
+	 .return ("#hash()")
+.end
+
 .namespace ['Cons']
 
 .sub 'name' :vtable :method
@@ -73,7 +86,7 @@ cdr_to_str:
    $I3 = issame $P1, nil
    if $I3 goto end # check if the list is finished
    $S1 = typeof $P1 # type of the cdr
-   if $S1 == 'Cons' goto to_list # is it another cons?
+   if $S1 == 'cons' goto to_list # is it another cons?
    str .= " . "
 	 $P2 = $P0.'cdr'()
    $S0 = $P2.'to_string'()
@@ -96,10 +109,12 @@ end:
 
 .sub 'to_string' :method
    $S0 = "#3(tagged "
-   $S1 = self[0]
+   $P0 = self[0]
+	 $S1 = $P0.'to_string'()
    $S0 .= $S1
    $S0 .= " "
-   $S1 = self[1]
+	 $P0 = self[1]
+   $S1 = $P0.'to_string'()
    $S0 .= $S1
    $S0 .= ")"
    .return ($S0)
@@ -282,16 +297,25 @@ end:
 .end
 
 .sub 'table'
-   $P0 = new 'Hash'
+   $P0 = new 'ArcHash'
    .return ($P0)
 .end
 
-.sub 'sref' :multi(Hash)
+.sub 'sref' :multi(ArcHash)
    .param pmc h
    .param pmc val
    .param pmc key
 
+	 $S0 = typeof key
+	 unless $S0 == 'string' goto tostring
+	 $S0 = "\""
+	 $S1 = key
+	 $S0 .= $S1
+	 $S0 .= "\""
+	 goto go
+tostring:	
 	 $S0 = key.'to_string'()
+go:			
    h[$S0] = val
 
    .return (val)
@@ -303,10 +327,10 @@ end:
    .param pmc ind
 
    $S0 = typeof val
-   unless $S0 == 'String' goto type_err
+   unless $S0 == 'char' goto type_err
    $S0 = typeof ind
-   unless $S0 == 'Integer' goto type_err2
-   $S0 = val
+   unless $S0 == 'int' goto type_err2
+   $S0 = val.'pr_repr'()
    str[ind] = $S0
    .return (val)
 type_err:
@@ -321,7 +345,7 @@ type_err2:
    .param pmc ind
 
    $S0 = typeof ind
-   unless $S0 == 'ArcInt' goto type_err
+   unless $S0 == 'int' goto type_err
    
    .local pmc nil
    $I0 = ind
