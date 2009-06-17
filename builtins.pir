@@ -27,7 +27,7 @@ loop:
 .sub 'err'
    .param pmc what
    $S0 = _str_err(what)
-   $P0 = new 'String'
+   $P0 = new 'ArcStr'
    set $P0, $S0
    die $P0
    .return ($P0)
@@ -195,9 +195,9 @@ error:
    $S0 = typeof a
    $S1 = typeof b
    unless $S0 == $S1 goto no
-   if $S0 == 'ArcInt' goto value_compare
-   if $S0 == 'ArcNum' goto value_compare
-   if $S0 == 'String' goto value_compare
+   if $S0 == 'int' goto value_compare
+   if $S0 == 'num' goto value_compare
+   if $S0 == 'string' goto value_compare
    
 adress_compare:
    $I0 = issame a, b
@@ -228,7 +228,7 @@ true:
 .endm
 
 .macro wcmp(name, op)
-   .defcmp(.name, .op, String, String, string)
+   .defcmp(.name, .op, ArcStr, ArcStr, string)
    .defcmp(.name, .op, ArcInt, ArcInt, int)
    .defcmp(.name, .op, ArcInt, ArcNum, num)
    .defcmp(.name, .op, ArcNum, ArcInt, num)
@@ -308,7 +308,7 @@ end:
    .return ($P0)
 .end
    
-.sub '+' :multi(String, String)
+.sub '+' :multi(ArcStr, ArcStr)
    .param pmc s1
    .param pmc s2
 
@@ -316,7 +316,7 @@ end:
    $S1 = s2
    $S0 .= $S1
 
-   $P0 = new 'String'
+   $P0 = new 'ArcStr'
    $P0 = $S0
    .return ($P0)
 .end
@@ -513,7 +513,7 @@ do:
 do:
    $S1 = what # conversion
    $S0 = typeof what
-   unless $S0 == 'String' goto go_on
+   unless $S0 == 'string' goto go_on
    $S0 = "\""
    $S0 .= $S1
    $S0 .= "\""
@@ -689,7 +689,7 @@ loop:
    n = n - 1
    goto loop
 end:
-   $P0 = new 'String'
+   $P0 = new 'ArcStr'
    $P0 = $S0
    .return ($P0)
 .end
