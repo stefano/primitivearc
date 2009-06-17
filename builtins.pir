@@ -463,8 +463,7 @@ error:
    $S1 = fname
    $S0 .= $S1
    $S0 = _str_err($S0)
-   ex = $S0
-   rethrow ex
+	 .tailcall 'err'($S0)
 .end
 
 .sub 'infile'
@@ -513,8 +512,11 @@ error:
    .param int has_in :opt_flag
    if has_in goto do
    inport = get_hll_global 'stdin*'
-do:     
-   .tailcall inport.'get1'()
+do:
+	 $P0 = new 'ArcChar'
+	 $S0 = inport.'get1'()
+	 $P0 = $S0
+	 .return ($P0)
 .end
    
 .sub 'readb'
@@ -523,7 +525,10 @@ do:
    if has_in goto do
    inport = get_hll_global 'stdin*'
 do:
-   .tailcall 'readc'(inport)
+	 $P0 = new 'ArcChar'
+	 $S0 = inport.'get1'()
+	 $P0 = $S0
+	 .return ($P0)
 .end
 
 .sub 'peekc'
@@ -532,7 +537,10 @@ do:
    if has_in goto do
    inport = get_hll_global 'stdin*'
 do:
-   .tailcall inport.'peek1'()
+	 $P0 = new 'ArcChar'
+	 $S0 = inport.'peek1'()
+	 $P0 = $S0
+	 .return ($P0)
 .end
 
 .sub 'read'
@@ -544,7 +552,6 @@ do:
    .tailcall _read(inport)
 .end
 
-## this is actually write-string...
 .sub 'writec'
    .param pmc c
    .param pmc outport :optional
@@ -553,7 +560,7 @@ do:
    outport = get_hll_global 'stdout*'
 do:
    $P0 = getattribute outport, 'stream'
-   $S0 = c
+   $S0 = c.'pr_repr'()
    $P0.'puts'($S0)
    
    .return (c)
@@ -576,9 +583,10 @@ do:
    if has_out goto do
    outport = get_hll_global 'stdout*'
 do:
-   $S1 = what # conversion
+	 $S1 = what.'to_string'() # conversion
    $S0 = typeof what
    unless $S0 == 'string' goto go_on
+	 $S1 = what.'escape'()
    $S0 = "\""
    $S0 .= $S1
    $S0 .= "\""

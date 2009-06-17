@@ -24,8 +24,7 @@ language_output_is('Arc', << 'CODE', << 'RES', 'infile & readc');
 (write c1)
 c2
 CODE
-#\O
-#\K
+#\O#\K
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & readb');
@@ -36,8 +35,7 @@ language_output_is('Arc', << 'CODE', << 'RES', 'infile & readb');
 (write c1)
 c2
 CODE
-#\O
-#\K
+#\O#\K
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & peekc');
@@ -48,8 +46,7 @@ language_output_is('Arc', << 'CODE', << 'RES', 'infile & peekc');
 (write c1)
 c2
 CODE
-#\O
-#\O
+#\O#\O
 RES
 
 ## full read functionality not tested here. just check it works on files

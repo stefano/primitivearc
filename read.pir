@@ -55,7 +55,7 @@
    set_hll_global 'escape-table*', $P0
 
    ## Global character names table
-   $P0 = new 'Hash'
+   $P0 = new 'ArcHash'
    $P0["newline"] = "\n"
    $P0["space"] = " "
    $P0["tab"] = "\t"
@@ -84,7 +84,7 @@
    .param string str
    
    self = str # stream contents
-   $P0 = new 'Integer'
+   $P0 = new 'ArcInt'
    $P0 = 0
    setattribute self, 'position', $P0 # start at position 0
 
@@ -464,7 +464,7 @@ go_on:
 .sub 'ssexpand'
    .param pmc sym
 
-   .check_type(sym, 'ArcSym')
+   .check_type(sym, 'sym')
    .local pmc tbl
    tbl = get_hll_global 'ssyntax-table*'
    $I0 = -1
