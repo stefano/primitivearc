@@ -16,6 +16,10 @@ pmclass ArcInt
 		return Parrot_Integer_get_integer(INTERP, SELF);
 	}
 
+	VTABLE FLOATVAL get_number() {
+		return Parrot_Integer_get_number(INTERP, SELF);
+	}
+
 	VTABLE STRING* name() {
 		return Parrot_str_new_constant(INTERP, "int");
 	}

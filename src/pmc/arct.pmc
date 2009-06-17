@@ -2,7 +2,7 @@ static void call_type_err(PARROT_INTERP, PMC *self, const char *expected) {
 	PMC *err = Parrot_find_global_s(interp, Parrot_str_new_constant(interp, ""),
 																		Parrot_str_new_constant(interp, "err"));
 	STRING *msg = Parrot_sprintf_c(interp, "attempt to use an %Ss where an %s is expected", VTABLE_name(interp, self), expected);
-	printf("%p\n", err);
+	//	printf("got %s, want %s\n", string_to_cstring_nullable(interp, VTABLE_name(interp, self)), expected);
 	if (err) {
 		Parrot_call_sub(interp, err, "vS", msg);
 	}
