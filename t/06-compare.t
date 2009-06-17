@@ -41,7 +41,7 @@ language_output_is('Arc', '(iso nil t)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 nil)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 t)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 1)', "t\n", 'iso');
-language_output_is('Arc', '(iso 1 1.0)', "t\n", 'iso');
+language_output_is('Arc', '(iso 1 1.0)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 1.1)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 2 1 2)', "nil\n", 'iso');
 language_output_is('Arc', '(iso 1 1 2)', "nil\n", 'iso');

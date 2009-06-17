@@ -157,34 +157,73 @@ zero_args:
    .return ($N0)
 .end
 
-.sub 'is' :multi()
-   .param pmc args :slurpy
-   .local pmc nil
-   nil = get_hll_global 'nil'
-   $P0 = new 'Iterator', args
-   unless $P0 goto yes
-   $P1 = shift $P0
-   $P2 = shift $P0
+.macro base_and_reduce_equality (name)
+
+	 .sub .name :multi()
+			.param pmc args :slurpy
+			.local pmc nil
+			nil = get_hll_global 'nil'
+			$P0 = new 'Iterator', args
+			unless $P0 goto yes
+			$P1 = shift $P0
+			$P2 = shift $P0
 loop:
-   $P3 = is($P1, $P2)
-   $I0 = issame $P3, nil
-   if $I0 goto no
-   unless $P0 goto yes
-   $P1 = $P2
-   $P2 = shift $P0
-   goto loop
+			$P3 = .name($P1, $P2)
+			unless $P3 goto no
+			unless $P0 goto yes
+			$P1 = $P2
+			$P2 = shift $P0
+			goto loop
 yes:
-   $P0 = get_hll_global 't'
-   .return ($P0)
+			$P0 = get_hll_global 't'
+			.return ($P0)
 no:
-   .return (nil)
+			.return (nil)
+	 .end
+
+	 .sub .name :multi(PMC)
+			.param pmc a
+			$P0 = get_hll_global 't'
+			.return ($P0)
+	 .end
+	 
+.endm
+
+.base_and_reduce_equality('iso')
+
+.sub 'iso' :multi(Cons, Cons)
+	 .param pmc a
+	 .param pmc b
+
+	 .local pmc nil
+	 nil = get_hll_global 'nil'
+loop:
+	 $P0 = car(a)
+	 $P1 = car(b)
+	 $P2 = 'iso'($P0, $P1)
+	 unless $P2 goto no
+	 a = cdr(a)
+	 b = cdr(b)
+	 unless a goto nil_b
+	 if b goto loop
+	 goto no
+nil_b:
+	 if b goto no
+	 goto yes
+no:
+	 .return (nil)
+yes:
+	 $P0 = get_hll_global 't'
+	 .return ($P0)
 .end
 
-.sub 'is' :multi(PMC)
-   .param pmc a
-   $P0 = get_hll_global 't'
-   .return ($P0)
+.sub 'iso' :multi(_, _)
+	 .param pmc a
+	 .param pmc b
+	 .tailcall 'is'(a, b)
 .end
+
+.base_and_reduce_equality('is')
 
 .sub 'is' :multi(PMC, PMC)
    .param pmc a
@@ -227,12 +266,38 @@ true:
 .endm
 
 .macro wcmp(name, op)
+
+	 .sub .name :multi()
+			.param pmc args :slurpy
+			.local pmc nil
+			nil = get_hll_global 'nil'
+			$P0 = new 'Iterator', args
+			unless $P0 goto yes
+			$P1 = shift $P0
+			unless $P0 goto yes
+			$P2 = shift $P0
+loop:
+			$P3 = .name($P1, $P2)
+			$I0 = issame $P3, nil
+			if $I0 goto no
+			unless $P0 goto yes
+			$P1 = $P2
+			$P2 = shift $P0
+			goto loop
+yes:
+			$P0 = get_hll_global 't'
+			.return ($P0)
+no:
+			.return (nil)
+	 .end
+
    .defcmp(.name, .op, ArcStr, ArcStr, string)
-   .defcmp(.name, .op, ArcInt, ArcInt, int)
+	 .defcmp(.name, .op, ArcChar, ArcChar, pmc)
+	 .defcmp(.name, .op, ArcInt, ArcInt, int)
    .defcmp(.name, .op, ArcInt, ArcNum, num)
    .defcmp(.name, .op, ArcNum, ArcInt, num)
    .defcmp(.name, .op, ArcNum, ArcNum, num)
-
+   
    .sub .name :multi(_, _)
       .param pmc a1
       .param pmc a2
@@ -247,6 +312,7 @@ true:
       $P0 = get_hll_global 'nil'
       .return($P0)
    .end
+	 
 .endm
 
 .wcmp('<', <)
