@@ -1,0 +1,93 @@
+#define PMC_type(pmc) ((pmc)->vtable->base_type)
+#define c_car(pmc) (PARROT_ARCCONS(pmc))->the_car
+#define c_cdr(pmc) (PARROT_ARCCONS(pmc))->the_cdr
+/*
+static STRING* as_string(PARROT_INTERP, PMC *pmc) {
+	PMC *meth;
+	STRING *meth_name = Parrot_str_new_constant(interp, "to_string");
+	meth = VTABLE_find_method(interp, pmc, meth_name);
+	if (meth) {
+		return (STRING*)Parrot_run_meth_fromc_args(interp, meth, pmc, meth_name, "SP", pmc);
+	}
+}
+*/
+pmclass ArcCons
+  extends ArcT
+  dynpmc
+  group primitivearc_group
+  hll Arc {
+
+	ATTR PMC *the_car;
+	ATTR PMC *the_cdr;
+
+	VTABLE void init() {
+		PMC_data(SELF) = mem_allocate_zeroed_typed(Parrot_ArcCons_attributes);
+		PObj_custom_mark_SET(SELF);
+	}
+	
+	VTABLE void mark() {
+		Parrot_ArcCons_attributes *c = PARROT_ARCCONS(SELF);
+		if (c->the_car)
+			pobject_lives(INTERP, (PObj *)c->the_car);
+		if (c->the_cdr)
+			pobject_lives(INTERP, (PObj *)c->the_cdr);
+		/*
+		PMC *obj;
+		GET_ATTR_the_car(INTERP, SELF, obj);
+		pobject_lives(INTERP, (PObj*)obj);
+		GET_ATTR_the_cdr(INTERP, SELF, obj);
+		pobject_lives(INTERP, (PObj*)obj);*/
+	}
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "cons");
+	}
+
+	METHOD car() {
+		PMC *res;
+		GET_ATTR_the_car(INTERP, SELF, res);
+		RETURN(PMC *res);
+	}
+
+	METHOD cdr() {
+		PMC *res;
+		GET_ATTR_the_cdr(INTERP, SELF, res);
+		RETURN(PMC *res);
+	}
+
+	METHOD scar(PMC *val) {
+		SET_ATTR_the_car(INTERP, SELF, val);
+		RETURN(PMC *val);
+	}
+
+	METHOD scdr(PMC *val) {
+		SET_ATTR_the_cdr(INTERP, SELF, val);
+		RETURN(PMC *val);
+	}
+
+	/*
+	METHOD to_string() {
+		STRING *str;
+		STRING *car;
+		PMC *cdr = c_cdr(SELF);
+		INTVAL cons_type = pmc_type(INTERP, Parrot_str_new_constant(INTERP, "ArcCons"));
+		INTVAL nil_type = pmc_type(INTERP, Parrot_str_new_constant(INTERP, "ArcNil"));
+		car = as_string(INTERP, c_car(SELF));
+		str = Parrot_sprintf_c(INTERP, "(%Ss", car);
+		while (PMC_type(cdr) == cons_type) {
+			STRING *c = as_string(INTERP, c_car(cdr));
+			str = Parrot_sprintf_c(INTERP, "%Ss %Ss", str, c);
+			cdr = c_cdr(cdr);
+		}
+		if (PMC_type(cdr) == nil_type) {
+			str = Parrot_sprintf_c(INTERP, "%Ss)", str);
+		} else {
+			STRING *c = as_string(INTERP, cdr);
+			str = Parrot_sprintf_c(INTERP, "%Ss %Ss", str, c);
+		}
+		
+
+		RETURN(STRING *str);
+	}
+	*/
+}

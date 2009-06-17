@@ -10,6 +10,13 @@ pmclass ArcSym
 	VTABLE void init() {
 		Parrot_ArcSym_attributes *u = mem_allocate_zeroed_typed(Parrot_ArcSym_attributes);
 		PMC_data(SELF) = u;
+		PObj_custom_mark_SET(SELF);
+	}
+	
+	VTABLE void mark() {
+		Parrot_ArcSym_attributes *s = PARROT_ARCSYM(SELF);
+		if (s->repr)
+			pobject_lives(INTERP, (PObj *)s->repr);
 	}
 
 	VTABLE STRING* name() {

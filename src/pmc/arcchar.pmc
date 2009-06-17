@@ -1,0 +1,65 @@
+pmclass ArcChar
+  extends ArcT
+  extends String
+  dynpmc
+  group primitivearc_group
+  hll Arc {
+
+	VTABLE INTVAL get_bool() {
+		return 1;
+	}
+	
+	VTABLE INTVAL cmp(PMC *val) {
+		if (VTABLE_type(INTERP, SELF) == VTABLE_type(INTERP, val)) {
+			STRING *s1 = Parrot_String_get_string(INTERP, SELF);
+			STRING *s2 = Parrot_String_get_string(INTERP, val);
+			return Parrot_str_compare(INTERP, s1, s2);
+		} else {
+			// should throw an error instead?
+			return -1;
+		}
+	}
+
+	VTABLE INTVAL is_equal(PMC *val) {
+		if (VTABLE_type(INTERP, SELF) == VTABLE_type(INTERP, val)) {
+			STRING *s1 = Parrot_String_get_string(INTERP, SELF);
+			STRING *s2 = Parrot_String_get_string(INTERP, val);
+			return Parrot_str_equal(INTERP, s1, s2);
+		} else {
+			return 0;
+		}
+	}
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "char");
+	}
+
+	METHOD pr_repr() {
+		STRING *res = Parrot_String_get_string(INTERP, SELF);
+		RETURN(STRING *res);
+	}
+
+	METHOD to_string() {
+		STRING *newline = Parrot_str_new_constant(INTERP, "\n");
+		STRING *tab = Parrot_str_new_constant(INTERP, "\t");
+		STRING *space = Parrot_str_new_constant(INTERP, " ");
+		
+		STRING *repr = Parrot_String_get_string(INTERP, SELF);
+		STRING *res = repr;
+
+		/* special chars */
+		if (Parrot_str_equal(INTERP, repr, newline)) {
+			res = Parrot_str_new_constant(INTERP, "newline");
+		}
+		if (Parrot_str_equal(INTERP, repr, tab)) {
+			res = Parrot_str_new_constant(INTERP, "tab");
+		}
+		if (Parrot_str_equal(INTERP, repr, space)) {
+			res = Parrot_str_new_constant(INTERP, "space");
+		}
+
+		res = Parrot_sprintf_c(INTERP, "#\\%Ss", res);
+		RETURN(STRING *res);
+	}
+
+}

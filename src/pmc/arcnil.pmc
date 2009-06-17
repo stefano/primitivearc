@@ -1,0 +1,28 @@
+pmclass ArcNil
+  extends ArcT
+  dynpmc
+  group primitivearc_group
+  hll Arc {
+
+	VTABLE INTVAL get_bool() {
+		return 0;
+	}
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "nil");
+	}
+
+	METHOD to_string() {
+		STRING *res = Parrot_str_new_constant(INTERP, "nil");
+		RETURN(STRING *res);
+	}
+
+	METHOD car() {
+		RETURN(PMC *SELF);
+	}
+
+	METHOD cdr() {
+		RETURN(PMC *SELF);
+	}
+
+}

@@ -1,0 +1,18 @@
+pmclass ArcFn
+  extends ArcT
+  extends Sub
+  dynpmc
+  group primitivearc_group
+  hll Arc 
+  maps Sub {
+
+	VTABLE STRING* name() {
+		return Parrot_str_new_constant(INTERP, "function");
+	}
+
+	METHOD to_string() {
+		STRING *res = Parrot_str_new_constant(INTERP, "#<function>");
+		RETURN(STRING* res);
+	}
+
+}
