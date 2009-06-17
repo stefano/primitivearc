@@ -166,14 +166,14 @@
            (c-pop cs) ; discard ret. value
            (self (cdr e))))) seq)))
 
-(def collect-args (args)
-  (if
-    (no args)
-      nil
-    (and args (no (acons args))) ; rest arg
-      (list (listtab `((arg ,args) (type rest) (rep ,(uniq)))))
-    (cons (listtab `((arg ,(car args)) (type normal) (rep ,(uniq))))
-          (collect-args (cdr args)))))
+;(def collect-args (args)
+;  (if
+;    (no args)
+;      nil
+;    (and args (no (acons args))) ; rest arg
+;      (list (listtab `((arg ,args) (type rest) (rep ,(uniq)))))
+;    (cons (listtab `((arg ,(car args)) (type normal) (rep ,(uniq))))
+;          (collect-args (cdr args)))))
 
 ; compiles a global function expression
 ; takes a fn-info object
@@ -186,16 +186,17 @@
     (unless (isa name 'sym)
       (err:string "not a symbol: " name))
     (emit-fn-head cs name f!outer)
-    (each arg args
-      (case arg!type
-        normal (prn ".param pmc " arg!rep)
-        rest (do 
-               (prn ".param pmc " arg!rep " :slurpy")
-               (prn arg!rep " = list(" arg!rep " :flat)"))
-        (err "unknow arg type: " arg)))
+    (emit-args args)
+ ;   (each arg args
+ ;     (case arg!type
+ ;       normal (prn ".param pmc " arg!rep)
+ ;       rest (do 
+ ;              (prn ".param pmc " arg!rep " :slurpy")
+ ;              (prn arg!rep " = list(" arg!rep " :flat)"))
+ ;       (err "unknow arg type: " arg)))
     ; declare each arg as lexical
-    (each arg args
-      (prn ".lex '" arg!arg "', " arg!rep))
+;    (each arg args
+;      (prn ".lex '" arg!arg "', " arg!rep))
     ; emit the body
     (reset-reg cs)
     (let old cs!lex
@@ -268,9 +269,9 @@
   (listtab `((expr ,expr) (outer ,outer) (lex ,lex))))
 
 (def arg-names (args)
-  (if (no (acons args))
-    (list args)
-    (makeproper args)))
+  ; consider destructuring too
+  ; TODO: don't count optionals (o ...)
+  (flat args))
 
 ; !! probably incorrect
 (def collect-fns-and-consts (expr lex outer is-seq)
@@ -310,14 +311,82 @@
         ; a list
         (map macex e)))))
 
-; ret list with new args list and expression to do the destructuring
-;(def destructure (args)
-;  (if 
-;    (no args)
-;      (list nil nil)
-;    (and (acons (car args)) (no (is (caar args) 'o)))
-;      (let name (uniq)
-;        (if (acons (caar args))
-;          (let (subargs subexpr) (destructure (caar args))
-;            `(do ,@subexpr ,@(destructure (cdar args))))
-          
+(def arg-name (a) a!name)
+(def arg-p-name (a) a!p-name)
+(def arg-type (a) a!type)
+(def arg-expr (a) a!expr)
+
+(def mk-arg (name p-name expr type)
+  (listtab `((name ,name) (p-name ,p-name) (expr ,expr) (type ,type))))
+
+(def mk-darg (name p-name expr)
+  (mk-arg name p-name expr 'dest))
+
+(def assign-str (pos gs)
+  (string pos "(" gs ")"))
+
+(def des-arg (a gs pos)
+  (if 
+    (isa a 'sym)
+      (list (mk-darg a (uniq) (assign-str pos gs)))
+    (acons a)
+      (let gs-2 (if (is pos 'top) gs (uniq))
+        (join (if (is pos 'top) 
+                nil 
+                (list (mk-darg nil gs-2 (assign-str pos gs))))
+              (des-arg (car a) gs-2 'car)
+              (if (cdr a) 
+                (des-arg (cdr a) gs-2 'cdr)
+                nil)))
+    (no a)
+      nil
+    (err:string "Can't destructure: " a)))
+
+(def pr-param (p-name extra)
+  (prn ".param pmc " p-name extra))
+
+(def pr-lex (name p-name)
+  (prn ".lex '" name "', " p-name))
+
+; emit code to declare a parameter
+(def emit-arg-dec (a)
+  (case (arg-type a)
+    simple (pr-param (arg-p-name a) "")
+    dest (pr-param (arg-p-name a) "")
+    rest (pr-param (arg-p-name a) " :slurpy")
+   (err:string "Unknown arg type: " a)))
+
+; emit initialization code for arg
+(def emit-arg-init (a)
+  (case (arg-type a)
+    simple (pr-lex (arg-name a) (arg-p-name a))
+    dest (each loc (arg-expr a)
+           (prn ".local pmc " (arg-p-name loc))
+           (if (arg-name loc)
+             (pr-lex (arg-name loc) (arg-p-name loc)))
+           (prn (arg-p-name loc) " = " (arg-expr loc)))
+    rest (do
+           (pr-lex (arg-name a) (arg-p-name a))
+           (prn (arg-p-name a) " = list(" (arg-p-name a) " :flat)"))
+    (err:string "Unknown arg: " a)))
+
+(def collect-args (args)
+  (if
+    (no args)
+      nil
+    (and args (no (acons args))) ; rest arg
+      (list (mk-arg args (uniq) nil 'rest))
+    (isa (car args) 'sym)
+      (cons (mk-arg (car args) (uniq) nil 'simple)
+            (collect-args (cdr args)))
+    (acons (car args))
+      (let p-name (uniq)
+        (cons (mk-arg nil p-name (des-arg (car args) p-name 'top) 'dest)
+              (collect-args (cdr args))))
+    (err:string "Unknow arg type:" args)))
+
+(def emit-args (args)
+  (each arg args
+    (emit-arg-dec arg))
+  (each arg args
+    (emit-arg-init arg)))
