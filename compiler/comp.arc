@@ -111,11 +111,13 @@
   (each arg e
     (compile-expr cs arg nil))
   (with (args (rev (map [c-pop cs] e)) ; pop args registers
-         arcall (case (- (len e) 1) ; don't count function
-                  1 "arcall1"
-                  2 "arcall2"
-                  ; else
-                  "arcall"))
+         arcall (if is-apply 
+                  "arcall"
+                  (case (- (len e) 1) ; don't count function
+                    1 "arcall1"
+                    2 "arcall2"
+                    ; else
+                    "arcall")))
     (if is-apply
       (let last (args (- (len args) 1))
         (prn last " = _list_to_array(" last ")")))
@@ -290,7 +292,6 @@
       (let res (apply map list res)
         (list (apply join res.0) (apply join res.1) res.2)))))
 
-; needs symeval from anarki
 (def mac-ex (e)
   (if (atom e) 
     e
@@ -302,9 +303,21 @@
           e
         (and (isa op 'sym)
              (bound op)
-             (isa (symeval op) 'mac))
+             (isa (eval op) 'mac))
           ; we have a macro
           (let expander (rep (symeval op))
             (apply expander (cdr e)))
         ; a list
         (map macex e)))))
+
+; ret list with new args list and expression to do the destructuring
+;(def destructure (args)
+;  (if 
+;    (no args)
+;      (list nil nil)
+;    (and (acons (car args)) (no (is (caar args) 'o)))
+;      (let name (uniq)
+;        (if (acons (caar args))
+;          (let (subargs subexpr) (destructure (caar args))
+;            `(do ,@subexpr ,@(destructure (cdar args))))
+          
