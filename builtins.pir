@@ -401,18 +401,38 @@ end:
    .tailcall f($P0)
 .end
 
+.sub 'pr'
+   .param pmc what :slurpy
+
+   $P0 = get_hll_global 'stdout*'
+   $P0 = getattribute $P0, 'stream'
+	 
+	 .local pmc x
+	 x = shift what
+loop:
+	 unless x goto end
+   $S0 = x.'to_string'()
+   $P0.'puts'($S0)
+	 x = shift what
+	 goto loop
+end:		
+   .return (x)
+.end
+
 .sub 'prn'
-   .param pmc what
+   .param pmc what :slurpy
 
-	 $S0 = what.'to_string'()
-   say $S0
+	 $P0 = get_hll_global 'stdout*'
+   $P0 = getattribute $P0, 'stream'
+	 $P1 = 'pr'(what :flat)
+	 $P0.'puts'("\n")
 
-   .return (what)
+   .return ($P1)
 .end
 
 .sub 'eval'
    .param pmc what
-   
+
    $P1 = _tl_compile(what)
    $P0 = compreg 'PIR'
    $P1 = $P0($P1)
@@ -737,7 +757,7 @@ end:
 .sub 'bound'
    .param pmc sym
 
-   $S0 = sym
+   $S0 = sym.'to_string'
    $P0 = get_hll_global $S0
    if_null $P0, false
    $P0 = get_hll_global 't'

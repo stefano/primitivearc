@@ -1,24 +1,22 @@
 ; Copyright (c) 2008 Dissegna Stefano
 
+; functions needed to run compiled pbc compiler
+
 ; quasiquoting
 
-; helper fns and macs
-
-(set and 
-  (annotate 'mac 
-    (fn (a b)
-      (list 'if a (list 'if b t)))))
+; helper fns
 
 (set no (fn (x) (if x nil t)))
 
-(set atom (fn (x) (no (is (type x) 'cons))))
-(set acons (fn (x) (is (type x) 'cons)))
-(set cadr [car (cdr _)])
+(def atom (x) (no (is (type x) 'cons)))
+(def acons (x) (is (type x) 'cons))
+(set alist acons)
 
-(set let 
-  (annotate 'mac (fn (x y . bd) (list (cons 'fn (cons (list x) bd)) y))))
+(def isa (x what) (is (type x) what))
 
-(set map1 (fn (f l) (if l (cons (f (car l)) (map1 f (cdr l))))))
+(def cadr (x) (car:cdr x))
+
+(def map1 (fn (f l) (if l (cons (f (car l)) (map1 f (cdr l))))))
 
 (set splice 
   (fn (l before)
@@ -53,3 +51,81 @@
   (annotate 'mac 
     (fn (x)
       (splice (eval-qq x 1) nil))))
+
+(def mem (x l)
+  (if (no l) l
+    (is (car l) x) x
+    (mem x (cdr l))))
+
+(set coerce-table* (table))
+
+(def coerce (what into)
+  ((coerce-table* into) what))
+
+(= (coerce-table* 'string) (fn (s) (str>lst s 0)))
+
+(def str>lst (s pos)
+  (if (< pos (len s))
+    (cons (s pos) (str>lst s (+ pos 1)))
+    nil))
+
+(def rev (lst)
+  (let f (afn (l acc)
+           (if l (self (cdr l) (cons (car l) acc)) acc))
+    (f lst nil)))
+
+(def intersperse (x into)
+  (let f (afn (into)
+           (cons x (cons (car into) (self (cdr into)))))
+    (cons (car into) (f (cdr into)))))
+
+; TODO: make it really atomic
+(def atomic-invoke (f) (f))
+
+; from arc.arc
+(def flat (x)
+  ((afn (x acc)
+     (if (no x)   acc
+         (atom x) (cons x acc)
+                  (self (car x) (self (cdr x) acc))))
+   x nil))
+
+; from arc.arc (anarki)
+(def makeproper (lst)
+  (if (no (acons lst))
+      lst
+      (cons (car lst)
+            (if (alist (cdr lst))
+              (makeproper (cdr lst))
+              (list (cdr lst)))))))
+
+; from arc.arc (minus string stuff)
+(def map (f . seqs)
+  (if (no (cdr seqs)) 
+       (map1 f (car seqs))
+      ((afn (seqs)
+        (if (some no seqs)  
+            nil
+            (cons (apply f (map1 car seqs))
+                  (self (map1 cdr seqs)))))
+       seqs)))
+
+; from arc.arc
+(def listtab (al)
+  (let h (table)
+    (map (fn ((k v)) (= (h k) v))
+         al)
+    h))
+
+(set join +)
+
+(let next
+  (def uniq ()
+    (= next (+ next 1))
+    (intern (string "gs" next))))
+
+(set sig (table))
+(set help* (table))
+(set source-file* (table))
+(set current-load-file* nil)
+(set source* (table))

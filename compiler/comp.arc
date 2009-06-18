@@ -247,10 +247,10 @@
   (and (acons e) (is (car e) 'fn)))
 
 (def mk-const (name expr)
-  (listtab `((name ,name) (expr ,expr))))
+  (listtab (list (list 'name name) (list 'expr expr))))
 
 (def mk-fn (expr outer lex)
-  (listtab `((expr ,expr) (outer ,outer) (lex ,lex))))
+  (listtab (list (list 'expr expr) (list 'outer outer) (list 'lex lex))))
 
 (def arg-names (args)
   ; consider destructuring too
@@ -273,8 +273,10 @@
               body (cddr expr)
               new-lex (join (arg-names args) lex))
         (let (fns consts expr) (collect-fns-and-consts body new-lex name t)
-          (list (cons (mk-fn `($fn ,name ,args ,@expr) outer new-lex) fns)
-                consts `(,(if (iso outer "") '$function '$closure) ,name))))
+          (list (cons (mk-fn (cons '$fn (cons name (cons args expr)))
+                              outer new-lex)
+                      fns)
+                consts (list (if (iso outer "") '$function '$closure) name))))
     (let res (map [collect-fns-and-consts _ lex outer nil] expr)
       (let res (apply map list res)
         (list (apply join res.0) (apply join res.1) res.2)))))
@@ -285,17 +287,17 @@
     (let op (car e)
       (if 
         (is op 'fn)
-          `(fn ,(cadr e) ,@(map mac-ex (cddr e)))
+          (cons 'fn (cons (cadr e) (map mac-ex (cddr e))))
         (is op 'quote)
           e
         (and (isa op 'sym)
              (bound op)
              (isa (eval op) 'mac))
           ; we have a macro
-          (let expander (rep (symeval op))
-            (apply expander (cdr e)))
+          (let expander (rep (eval op))
+            (mac-ex (apply expander (cdr e))))
         ; a list
-        (map macex e)))))
+        (map mac-ex e)))))
 
 ; fn args
 
@@ -305,7 +307,8 @@
 (def arg-expr (a) a!expr)
 
 (def mk-arg (name p-name expr type)
-  (listtab `((name ,name) (p-name ,p-name) (expr ,expr) (type ,type))))
+  (listtab (list (list 'name name) (list 'p-name p-name)
+                 (list 'expr expr) (list 'type type))))
 
 (def mk-darg (name p-name expr)
   (mk-arg name p-name expr 'dest))
