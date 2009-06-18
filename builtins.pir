@@ -435,10 +435,16 @@ end:
 .sub 'eval'
    .param pmc what
 
-   $P1 = _tl_compile(what)
-   $P0 = compreg 'PIR'
-   $P1 = $P0($P1)
-   $P1()
+	 $P0 = 'outstring'()
+	 $P1 = get_hll_global 'stdout*'
+	 set_hll_global 'stdout*', $P0
+	 $P0 = get_hll_global 'tl-compile'
+   $P0 = $P0(what)
+	 set_hll_global 'stdout*', $P1
+   $P1 = compreg 'PIR'
+	 $P0 = 'inside'($P0)
+   $P0 = $P1($P0)
+   $P0()
    $P0 = get_hll_global '***' # !! I don't like this
    .return ($P0)
 .end
@@ -500,11 +506,30 @@ error:
    .tailcall '_open_file'(fname, $P0, 'w')
 .end
 
-.sub 'inside'
+.sub 'instring'
    .param pmc str
    $P0 = new 'ReadStream'
    $P0.'input'(str)
    .return ($P0)
+.end
+
+.sub 'outstring'
+	 $P0 = new 'StringHandle'
+	 $P0.'open'("", "w")
+	 $P1 = new 'Outport'
+	 setattribute $P1, 'stream', $P0
+	 .return ($P1)
+.end
+
+.sub 'inside'
+	 .param pmc str_oport
+
+	 $P0 = getattribute str_oport, 'stream'
+	 $S0 = $P0.'read'(0) # bytes num is ignored
+	 $P0 = new 'ArcStr'
+	 $P0 = $S0
+
+	 .return ($P0)
 .end
 
 .sub 'pipe-from'
@@ -787,4 +812,20 @@ end:
    $P0 = new 'ArcStr'
    $P0 = $S0
    .return ($P0)
+.end
+
+.sub 'string'
+	 .param pmc args :slurpy
+
+	 $S0 = ""
+loop:		
+	 unless args goto end
+	 $P0 = shift args
+	 $S1 = $P0.'to_string'()
+	 $S0 .= $S1
+	 goto loop
+end:
+	 $P0 = new 'ArcStr'
+	 $P0 = $S0
+	 .return ($P0)
 .end

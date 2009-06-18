@@ -47,20 +47,20 @@
           (fns consts expr) (collect-fns-and-consts (mac-ex e) nil 
                                                     "" nil consts-tbl)
           cs (empty-state))
-    ; entry function
     (prn ".HLL 'Arc'")
-    (prn ".sub _main :anon")
-    (compile-expr cs expr nil)
-    (prn "set_hll_global '***', " (c-pop cs))
-    (prn ".return ()")
-    (prn ".end")
     ; all the functions
     (each f fns
       (compile-fn (empty-state) f))
     ; all the constants
-    (prn ".sub _const_init :init :anon")
+    (prn ".sub _const_init :load :init :anon")
     (each const consts
       (compile-const (empty-state) const))
+    (prn ".return ()")
+    (prn ".end")
+    ; entry function
+    (prn ".sub _main :load :init :anon")
+    (compile-expr cs expr nil)
+    (prn "set_hll_global '***', " (c-pop cs))
     (prn ".return ()")
     (prn ".end")))
 
@@ -98,7 +98,7 @@
              (prn  "\""))
       sym (if (alex cs e)
             (prn out-reg " = find_lex '" e "'")
-            (prn out-reg " = get_hll_global '" e "'"))
+            (prn out-reg " = arc_get_global '" e "'"))
       cons (compile-special-or-call cs e out-reg is-tail))))
 
 (def compile-special-or-call (cs e out-reg is-tail)

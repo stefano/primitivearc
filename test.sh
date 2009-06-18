@@ -9,5 +9,3 @@ cat $1 /tmp/newline-file | nc localhost 4321 > $TMP;
 #cat $1 | $ARC compiler/tl.arc > $TMP
 
 $PARROT $TMP
-
-

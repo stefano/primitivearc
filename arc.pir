@@ -2,16 +2,29 @@
 
 .namespace [ ]
 
+## load ops
+.loadlib 'primitivearc_ops'
+
 .sub '__onload' :init
    ## load dynamic PMCs
    loadlib $P0, 'primitivearc_group'
 .end
 
+.include 'types.pir'
+.include 'symtable.pir'
+.include 'arcall.pir'
+.include 'compiler.pir'
+.include 'read.pir'
+.include 'builtins.pir'
+
 .sub '_main' :main
     .param pmc args
 		.local int is_pir
 		is_pir = 0
-		
+
+		load_bytecode 'ac/boot.pbc'
+		load_bytecode 'ac/comp.pbc'
+				
     ## register the sub _compile as the compilation function for Arc
     $P0 = get_hll_global '_compile'
     compreg 'Arc', $P0
@@ -98,17 +111,11 @@ error:
    $P1 = new 'ReadStream'
    $P1.'input'($S0)
    $P0 = _read($P1)
-   code = _tl_compile($P0)
+   #code = _tl_compile($P0)
    
    ## get PIR compiler and compile the emitted PIR code
-   $P0 = compreg 'PIR'
-   $P1 = $P0(code)
+   #$P0 = compreg 'PIR'
+																				#$P1 = $P0(code)
+	 $P1 = 'eval'($P0)
    .return ($P1)
 .end
-
-.include 'types.pir'
-.include 'symtable.pir'
-.include 'arcall.pir'
-.include 'compiler.pir'
-.include 'read.pir'
-.include 'builtins.pir'
