@@ -404,15 +404,17 @@ end:
 .sub 'pr'
    .param pmc what :slurpy
 
+	 unless what goto end
+
    $P0 = get_hll_global 'stdout*'
    $P0 = getattribute $P0, 'stream'
 	 
 	 .local pmc x
 	 x = shift what
 loop:
-	 unless x goto end
    $S0 = x.'to_string'()
    $P0.'puts'($S0)
+	 unless what goto end
 	 x = shift what
 	 goto loop
 end:		
@@ -757,7 +759,7 @@ end:
 .sub 'bound'
    .param pmc sym
 
-   $S0 = sym.'to_string'
+   $S0 = sym.'to_string'()
    $P0 = get_hll_global $S0
    if_null $P0, false
    $P0 = get_hll_global 't'

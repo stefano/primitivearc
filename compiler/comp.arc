@@ -43,8 +43,10 @@
 ; expression compiler
 
 (def tl-compile (e)
-  (with ((fns consts expr) (collect-fns-and-consts (mac-ex e) nil "" nil)
-         cs (empty-state))
+  (withs (consts-tbl (table)
+          (fns consts expr) (collect-fns-and-consts (mac-ex e) nil 
+                                                    "" nil consts-tbl)
+          cs (empty-state))
     ; entry function
     (prn ".HLL 'Arc'")
     (prn ".sub _main :anon")
@@ -135,8 +137,9 @@
 
 (def compile-const (cs const)
   (let emit-const (afn (e)
-                    (if (aquote e)
-                      (self (cadr e))
+                    (if 
+                      (aquote e)
+                        (self (cadr e))
                       (case (e-type e)
                         sym (prn (c-push cs) " = 'intern'('" e "')")
                         cons (do
@@ -259,25 +262,27 @@
     (list args)
     (flat (map [if (is-opt _) (cadr _) _] (makeproper args)))))
 
-; !! probably incorrect
-(def collect-fns-and-consts (expr lex outer is-seq)
+(def collect-fns-and-consts (expr lex outer is-seq consts)
   (if
     (isa expr 'sym) 
       (list nil nil expr)
     (or (in (e-type expr) 'int 'num 'char 'string) (aquote expr))
-      (let name (uniq)
-        (list nil (list (mk-const name expr)) name))
+      (if (consts expr)
+        (list nil nil (consts expr))
+        (let name (uniq)
+          (= (consts expr) name)
+          (list nil (list (mk-const name expr)) name)))
     (a-fn expr)
       (withs (name (uniq)
               args expr.1
               body (cddr expr)
               new-lex (join (arg-names args) lex))
-        (let (fns consts expr) (collect-fns-and-consts body new-lex name t)
+        (let (fns consts expr) (collect-fns-and-consts body new-lex name t consts)
           (list (cons (mk-fn (cons '$fn (cons name (cons args expr)))
                               outer new-lex)
                       fns)
                 consts (list (if (iso outer "") '$function '$closure) name))))
-    (let res (map [collect-fns-and-consts _ lex outer nil] expr)
+    (let res (map [collect-fns-and-consts _ lex outer nil consts] expr)
       (let res (apply map list res)
         (list (apply join res.0) (apply join res.1) res.2)))))
 
