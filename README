@@ -33,12 +33,12 @@ Roadmap:
   * if with multiple choices -- done
   * fn 
     * basic -- done
-    * optional and destructuring args
+    * optional and destructuring args -- done
   * ar-call -- done
   * tail calls -- done
   * apply -- done
   * set -- done
-  * macros -- done
+  * macros
 * Builtin functions
   * ccc -- done
 

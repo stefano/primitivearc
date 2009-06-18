@@ -5,6 +5,9 @@
 (def cdddr (x)
   (cdr:cdr:cdr x))
 
+(def caddr (x)
+  (cadr:cdr x))
+
 ; hold compiler state
 
 (def empty-state () (listtab '((reg 0) (lex nil))))
@@ -166,15 +169,6 @@
            (c-pop cs) ; discard ret. value
            (self (cdr e))))) seq)))
 
-;(def collect-args (args)
-;  (if
-;    (no args)
-;      nil
-;    (and args (no (acons args))) ; rest arg
-;      (list (listtab `((arg ,args) (type rest) (rep ,(uniq)))))
-;    (cons (listtab `((arg ,(car args)) (type normal) (rep ,(uniq))))
-;          (collect-args (cdr args)))))
-
 ; compiles a global function expression
 ; takes a fn-info object
 ; ($fn name (arg1 ... . rest-arg) ...)
@@ -187,16 +181,6 @@
       (err:string "not a symbol: " name))
     (emit-fn-head cs name f!outer)
     (emit-args args)
- ;   (each arg args
- ;     (case arg!type
- ;       normal (prn ".param pmc " arg!rep)
- ;       rest (do 
- ;              (prn ".param pmc " arg!rep " :slurpy")
- ;              (prn arg!rep " = list(" arg!rep " :flat)"))
- ;       (err "unknow arg type: " arg)))
-    ; declare each arg as lexical
-;    (each arg args
-;      (prn ".lex '" arg!arg "', " arg!rep))
     ; emit the body
     (reset-reg cs)
     (let old cs!lex
@@ -311,6 +295,8 @@
         ; a list
         (map macex e)))))
 
+; fn args
+
 (def arg-name (a) a!name)
 (def arg-p-name (a) a!p-name)
 (def arg-type (a) a!type)
@@ -352,6 +338,9 @@
 (def emit-arg-dec (a)
   (case (arg-type a)
     simple (pr-param (arg-p-name a) "")
+    opt (do
+          (pr-param (arg-p-name a) " :optional")
+          (prn ".param int has_" (arg-p-name a) " :opt_flag"))
     dest (pr-param (arg-p-name a) "")
     rest (pr-param (arg-p-name a) " :slurpy")
    (err:string "Unknown arg type: " a)))
@@ -360,6 +349,13 @@
 (def emit-arg-init (a)
   (case (arg-type a)
     simple (pr-lex (arg-name a) (arg-p-name a))
+    opt (with (next (label)
+               cs (empty-state))
+          (pr-lex (arg-name a) (arg-p-name a))
+          (prn "if has_" (arg-p-name a) " goto " next)
+          (compile-expr cs (arg-expr a) nil)
+          (prn (arg-p-name a) " = " (c-pop cs))
+          (prn next ":"))
     dest (each loc (arg-expr a)
            (prn ".local pmc " (arg-p-name loc))
            (if (arg-name loc)
@@ -370,6 +366,9 @@
            (prn (arg-p-name a) " = list(" (arg-p-name a) " :flat)"))
     (err:string "Unknown arg: " a)))
 
+(def is-opt (x)
+  (and (acons x) (is (car x) 'o)))
+
 (def collect-args (args)
   (if
     (no args)
@@ -379,6 +378,10 @@
     (isa (car args) 'sym)
       (cons (mk-arg (car args) (uniq) nil 'simple)
             (collect-args (cdr args)))
+    (is-opt (car args))
+      (let o (car args)
+        (cons (mk-arg (cadr o) (uniq) (caddr o) 'opt)
+              (collect-args (cdr args))))
     (acons (car args))
       (let p-name (uniq)
         (cons (mk-arg nil p-name (des-arg (car args) p-name 'top) 'dest)
