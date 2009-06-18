@@ -254,8 +254,10 @@
 
 (def arg-names (args)
   ; consider destructuring too
-  ; TODO: don't count optionals (o ...)
-  (flat args))
+  ; don't count optionals (o ...) 'o symbol and init expression
+  (if (isa args 'sym)
+    (list args)
+    (flat (map [if (is-opt _) (cadr _) _] (makeproper args)))))
 
 ; !! probably incorrect
 (def collect-fns-and-consts (expr lex outer is-seq)
