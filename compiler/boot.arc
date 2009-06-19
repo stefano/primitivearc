@@ -28,7 +28,8 @@
 (def cadr (x) (car:cdr x))
 (def cddr (x) (cdr:cdr x))
 
-(def map1 (f l) 
+(def map1 (f l)
+  ;(ero 'map1 l)
   (if l (cons (f (car l)) (map1 f (cdr l)))))
 
 (set splice 
@@ -73,9 +74,9 @@
 (set coerce-table* (table))
 
 (def coerce (what into)
-  ((coerce-table* into) what))
+  ((coerce-table* (cons (type what) into)) what))
 
-(= (coerce-table* 'string) (fn (s) (str>lst s 0)))
+(= (coerce-table* '(string . cons)) (fn (s) (str>lst s 0)))
 
 (def str>lst (s pos)
   (if (< pos (len s))
@@ -119,6 +120,7 @@
 
 ; from arc.arc (minus string stuff)
 (def map (f . seqs)
+;  (ero 'map seqs)
   (if (no (cdr seqs)) 
        (map1 f (car seqs))
       ((afn (seqs)

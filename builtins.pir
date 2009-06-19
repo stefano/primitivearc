@@ -439,6 +439,18 @@ end:
    .return ($P1)
 .end
 
+.sub 'ero'
+	 .param pmc what :slurpy
+
+	 $P0 = get_hll_global 'stdout*'
+	 $P1 = get_hll_global 'stderr*'
+	 set_hll_global 'stdout*', $P1
+	 $P1 = 'prn'(what :flat)
+	 set_hll_global 'stdout*', $P0
+
+	 .return ($P1)
+.end
+
 .sub 'eval'
    .param pmc what
 	 .local pmc out
@@ -450,7 +462,7 @@ end:
 	 set_hll_global 'stdout*', $P1
    $P1 = compreg 'PIR'
 	 $P0 = 'inside'(out)
-##	 say $P0
+	 say $P0
    $P0 = $P1($P0)
    $P0()
    $P0 = get_hll_global '***' # !! I don't like this

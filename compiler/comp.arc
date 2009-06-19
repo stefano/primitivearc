@@ -267,7 +267,7 @@
   (if
     (isa expr 'sym) 
       (list nil nil expr)
-    (or (in (e-type expr) 'int 'num 'char 'string) (aquote expr))
+    (or (in (e-type expr) 'int 'num 'char 'string 't 'nil) (aquote expr))
       (if (consts expr)
         (list nil nil (consts expr))
         (let name (uniq)

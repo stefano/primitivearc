@@ -42,7 +42,14 @@
    $P1 = getstdout
    setattribute $P0, 'stream', $P1
    set_hll_global 'stdout*', $P0
-   
+
+   ## default error port
+   $P0 = new 'Outport'
+   $P1 = getstderr
+   setattribute $P0, 'stream', $P1
+   set_hll_global 'stderr*', $P0
+
+	 
    $P0 = newclass 'Eof'
 
    $P0 = newclass 'Socketport'

@@ -75,6 +75,13 @@ too_large:
    .tailcall 'err'("Index too large!")
 .end
 
+.sub arcall1 :multi(ArcNil)
+	 .param pmc the_nil
+	 .param pmc pos
+
+	 .return (the_nil)
+.end
+
 .sub arcall1 :multi(ArcStr)
    .param pmc str
    .param pmc pos
