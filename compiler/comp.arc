@@ -48,6 +48,7 @@
                                                     "" nil consts-tbl)
           cs (empty-state))
     (prn ".HLL 'Arc'")
+    (prn ".loadlib 'primitivearc_ops'")
     ; all the functions
     (each f fns
       (compile-fn (empty-state) f))
@@ -116,7 +117,7 @@
   (each arg e
     (compile-expr cs arg nil))
   (with (args (rev (map [c-pop cs] e)) ; pop args registers
-         arcall (if is-apply 
+         _arcall (if is-apply 
                   "arcall"
                   (case (- (len e) 1) ; don't count function
                     1 "arcall1"
@@ -127,8 +128,8 @@
       (let last (args (- (len args) 1))
         (prn last " = _list_to_array(" last ")")))
     (if is-tail
-      (pr ".tailcall " arcall "(")
-      (pr out-reg " = " arcall "("))
+      (pr ".tailcall " _arcall "(")
+      (pr out-reg " = " _arcall "("))
     (each arg (intersperse ", " args)
       (pr arg))
     (if is-apply

@@ -82,7 +82,7 @@ end:
 loop:
       unless $P1 goto end
       $P2 = shift $P1
-      $P0 = .name($P0, $P2)
+			$P0 = .name($P0, $P2)
       goto loop
 end:
       .return ($P0)
@@ -348,14 +348,21 @@ end:
    .return (res, last)
 .end
 
-.sub '+' :multi(Nil, Cons)
+.sub '+' :multi(ArcNil, Cons)
    .param pmc a
    .param pmc b
    
    .tailcall 'copy'(b)
 .end
 
-.sub '+' :multi(Cons, Nil)
+.sub '+' :multi(ArcNil, ArcNil)
+	 .param pmc a
+	 .param pmc b
+
+	 .return (a)
+.end
+
+.sub '+' :multi(Cons, ArcNil)
    .param pmc a
    .param pmc b
    
@@ -434,15 +441,16 @@ end:
 
 .sub 'eval'
    .param pmc what
-
-	 $P0 = 'outstring'()
+	 .local pmc out
+	 out = 'outstring'()
 	 $P1 = get_hll_global 'stdout*'
-	 set_hll_global 'stdout*', $P0
+	 set_hll_global 'stdout*', out
 	 $P0 = get_hll_global 'tl-compile'
-   $P0 = $P0(what)
+   $P0(what)
 	 set_hll_global 'stdout*', $P1
    $P1 = compreg 'PIR'
-	 $P0 = 'inside'($P0)
+	 $P0 = 'inside'(out)
+##	 say $P0
    $P0 = $P1($P0)
    $P0()
    $P0 = get_hll_global '***' # !! I don't like this

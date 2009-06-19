@@ -26,7 +26,7 @@
 		load_bytecode 'ac/comp.pbc'
 				
     ## register the sub _compile as the compilation function for Arc
-    $P0 = get_hll_global '_compile'
+    $P0 = get_hll_global '_compile_and_eval'
     compreg 'Arc', $P0
     
     ## for every file in the command line, compile it
@@ -50,11 +50,10 @@ go_on:
 		unless is_pir goto compile_arc
 		$P0 = compreg 'PIR'
 		$P0 = $P0($S0)
-		goto run
+		$P0()
+		goto loop
 compile_arc:		
-    $P0 = _compile($S0)
-run:		
-    $P0() # run the just compiled bytecode
+    $P0 = _compile_and_eval($S0)
     goto loop
 end:
     $P1 = get_hll_global '***'
@@ -69,10 +68,8 @@ eval_mode:
 loop2:
 #    push_eh error # never give up
     $S0 = $P0.'readline_interactive'( 'arc> ' )
-    $P1 = _compile($S0)
-    $P1()
-    $P2 = get_hll_global '***'
-    #print ' -> '
+    $P2 = _compile_and_eval($S0)
+		##print ' -> '
     'prn'($P2)
     goto loop2
 error:
@@ -100,7 +97,7 @@ error:
    rethrow ex
 .end
 
-.sub '_compile'
+.sub '_compile_and_eval'
    .param string src
    .local pmc code
 

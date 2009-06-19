@@ -12,10 +12,12 @@
 
 (set no (fn (x) (if x nil t)))
 
+(set sym intern)
+
 (let next 0
   (def uniq ()
     (= next (+ next 1))
-    (intern (string "gs" next))))
+    (sym (string "gs" next))))
 
 (def atom (x) (no (is (type x) 'cons)))
 (def acons (x) (is (type x) 'cons))
@@ -58,10 +60,10 @@
           (list 'quasiquote (eval-qq (cadr x) (+ level 1)))
         (cons 'list (map1 [eval-qq _ level] x)))))
 
-(set quasiquote 
-  (annotate 'mac 
-    (fn (x)
-      (splice (eval-qq x 1) nil))))
+;(set quasiquote 
+;  (annotate 'mac 
+;    (fn (x)
+;      (splice (eval-qq x 1) nil))))
 
 (def mem (x l)
   (if (no l) l
@@ -87,9 +89,10 @@
 
 (def intersperse (x into)
   (let f (afn (into)
-           (cons x (cons (car into) (self (cdr into)))))
+           (if into
+             (cons x (cons (car into) (self (cdr into))))
+             nil))
     (cons (car into) (f (cdr into)))))
-
 
 ; from arc.arc
 (def flat (x)
@@ -107,6 +110,12 @@
             (if (alist (cdr lst))
               (makeproper (cdr lst))
               (list (cdr lst))))))
+
+; not the official some
+(def some (test l)
+  (if l
+    (or (test (car l)) (some test (cdr l)))
+    nil))
 
 ; from arc.arc (minus string stuff)
 (def map (f . seqs)
