@@ -216,7 +216,8 @@ end:
    result = ""
    
 loop:
-   $S0 = rs.'peek1'()
+   $P0 = rs.'peek1'()
+	 $S0 = $P0.'pr_repr'()
    if $S0 == 'nil' goto end # EOF
    $I0 = index separators, $S0
    unless $I0 == -1 goto end # separator may be safely left in the stream
@@ -316,15 +317,18 @@ mk_symbol:
    $S0 = rs.'get1'()
    unless $S0 == "\\" goto error
    $P0 = _read_symbol(rs)
-   $S0 = $P0 # get char name
-   $P0 = ct[$S0]
-   $I0 = defined $P0
-   if $I0 goto ret_it
+   $S0 = $P0.'to_string'() # get char name
+   $S1 = ct[$S0]
+   unless $S1 == "" goto ret_it
    $I0 = length $S0
    unless $I0 == 1 goto error
-   .return ($S0)
-ret_it:
+	 $P0 = new 'ArcChar'
+	 $P0 = $S0
    .return ($P0)
+ret_it:
+	 $P1 = new 'ArcChar'
+	 $P1 = $S1
+   .return ($P1)
 error:
    .tailcall 'err'("Wrong syntax")
 .end
@@ -492,8 +496,8 @@ end:
 ok:     
    $S0 = substr sym, 1
    $P0 = 'intern'("complement")
-   $P1 = 'intern'($S0)
-   $P1 = 'ssexpand'($P1)
+	 $P1 = 'instring'($S0)
+	 $P1 = 'read'($P1)
    .tailcall 'list'($P0, $P1)
 .end
 
@@ -510,10 +514,13 @@ ok:
    $S0 = substr sym, 0, pos
    $I0 = pos + 1
    $S1 = substr sym, $I0
-   $P0 = 'intern'($S0)
-   $P0 = 'ssexpand'($P0)
-   $P1 = 'intern'($S1)
-   $P1 = 'ssexpand'($P1)
+	 $P0 = 'instring'($S0)
+	 $P0 = 'read'($P0)
+	 $S0 = $P0.'to_string'()
+
+	 $P1 = 'instring'($S1)
+	 $P1 = 'read'($P1)
+
    .return ($P0, $P1)
 error:
    .tailcall 'err'("Wrong usage of ssyntax")

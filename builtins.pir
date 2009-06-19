@@ -462,7 +462,7 @@ end:
 	 set_hll_global 'stdout*', $P1
    $P1 = compreg 'PIR'
 	 $P0 = 'inside'(out)
-	 say $P0
+#	 say $P0
    $P0 = $P1($P0)
    $P0()
    $P0 = get_hll_global '***' # !! I don't like this
@@ -829,7 +829,7 @@ end:
 	 .param pmc args :slurpy
 
 	 $S0 = ""
-loop:		
+loop:
 	 unless args goto end
 	 $P0 = shift args
 	 $S1 = $P0.'pr_repr'()

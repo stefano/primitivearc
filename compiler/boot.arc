@@ -25,11 +25,10 @@
 
 (def isa (x what) (is (type x) what))
 
-(def cadr (x) (car:cdr x))
-(def cddr (x) (cdr:cdr x))
+(def cadr (x) (car (cdr x)))
+(def cddr (x) (cdr (cdr x)))
 
 (def map1 (f l)
-  ;(ero 'map1 l)
   (if l (cons (f (car l)) (map1 f (cdr l)))))
 
 (set splice 
@@ -120,7 +119,6 @@
 
 ; from arc.arc (minus string stuff)
 (def map (f . seqs)
-;  (ero 'map seqs)
   (if (no (cdr seqs)) 
        (map1 f (car seqs))
       ((afn (seqs)

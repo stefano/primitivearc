@@ -6,7 +6,7 @@ use utf8;
 
 use lib qw( . lib ../lib ../../lib );
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Parrot::Test;
 
 ## [ ... ]
@@ -19,7 +19,10 @@ language_output_is('Arc', '(set f (fn (x) x)) f."abc"', "\"abc\"\n", 'x.y');
 
 ## !
 language_output_is('Arc', '(set f (list 1 2)) f!1', "2\n", 'x!y');
-language_output_is('Arc', '(set f (fn (x) x)) f!(1 2 3)', "(1 2 3)\n", 'x!y');
 
 ## :
 language_output_is('Arc', '(set f (list 1 2)) (set g (fn (x) (+ x 1))) (g:f 1)', "3\n", 'x:y');
+
+## ~
+language_output_is('Arc', '(~is 1 1)', "nil\n", "~is");
+language_output_is('Arc', '~is.1', "nil\n", "~is.1");

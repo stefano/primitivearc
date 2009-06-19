@@ -3,10 +3,10 @@
 ; code is emitted on stdout
 
 (def cdddr (x)
-  (cdr:cdr:cdr x))
+  (cdr (cdr (cdr x))))
 
 (def caddr (x)
-  (cadr:cdr x))
+  (cadr (cdr x)))
 
 ; hold compiler state
 
@@ -265,9 +265,9 @@
 
 (def collect-fns-and-consts (expr lex outer is-seq consts)
   (if
-    (isa expr 'sym) 
+    (in (e-type expr) 'sym 't 'nil) 
       (list nil nil expr)
-    (or (in (e-type expr) 'int 'num 'char 'string 't 'nil) (aquote expr))
+    (or (in (e-type expr) 'int 'num 'char 'string) (aquote expr))
       (if (consts expr)
         (list nil nil (consts expr))
         (let name (uniq)
