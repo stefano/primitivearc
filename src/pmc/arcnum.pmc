@@ -10,6 +10,12 @@ pmclass ArcNum
 		return Parrot_Float_get_number(INTERP, SELF);
 	}
 
+	METHOD pr_repr() {
+		const FLOATVAL n = SELF.get_number();
+		STRING *res = Parrot_sprintf_c(INTERP, "%f", n);
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
 		const FLOATVAL n = SELF.get_number();
 		STRING *res = Parrot_sprintf_c(INTERP, "%f", n);

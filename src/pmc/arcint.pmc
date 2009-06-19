@@ -6,6 +6,12 @@ pmclass ArcInt
   hll Arc
   maps Integer {
 
+	METHOD pr_repr() {
+		const INTVAL i = VTABLE_get_integer(INTERP, SELF);
+		STRING *res = Parrot_sprintf_c(INTERP, "%d", i);
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
 		const INTVAL i = VTABLE_get_integer(INTERP, SELF);
 		STRING *res = Parrot_sprintf_c(INTERP, "%d", i);

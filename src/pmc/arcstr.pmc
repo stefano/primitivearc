@@ -18,15 +18,15 @@ pmclass ArcStr
 		return Parrot_str_new_constant(INTERP, "string");
 	}
 
-	METHOD escape() {
+	METHOD pr_repr() {
 		STRING *res = SELF.get_string();
-		res = Parrot_str_escape(INTERP, res);
-		RETURN(STRING *res);		
+		RETURN(STRING *res);
 	}
 
 	METHOD to_string() {
 		STRING *res = SELF.get_string();
-		RETURN(STRING *res);
+		res = Parrot_sprintf_c(INTERP, "\"%Ss\"", Parrot_str_escape(INTERP, res));
+		RETURN(STRING *res);		
 	}
 
 }

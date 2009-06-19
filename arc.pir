@@ -57,7 +57,8 @@ compile_arc:
     goto loop
 end:
     $P1 = get_hll_global '***'
-		'prn'($P1)
+		'write'($P1)
+		'prn'()
     goto the_end
 run_error:
     .get_results($P2)

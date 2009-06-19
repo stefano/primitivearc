@@ -419,7 +419,7 @@ end:
 	 .local pmc x
 	 x = shift what
 loop:
-   $S0 = x.'to_string'()
+   $S0 = x.'pr_repr'()
    $P0.'puts'($S0)
 	 unless what goto end
 	 x = shift what
@@ -567,7 +567,6 @@ error:
 
 .sub 'close'
    .param pmc port
-   
    $P0 = getattribute port, 'stream'   
    $P0.'close'()
    $P0 = get_hll_global 'nil'
@@ -651,14 +650,6 @@ do:
    outport = get_hll_global 'stdout*'
 do:
 	 $S1 = what.'to_string'() # conversion
-   $S0 = typeof what
-   unless $S0 == 'string' goto go_on
-	 $S1 = what.'escape'()
-   $S0 = "\""
-   $S0 .= $S1
-   $S0 .= "\""
-   $S1 = $S0
-go_on:
    $P0 = getattribute outport, 'stream'
    $P0.'puts'($S1)
    .return (what)
@@ -671,7 +662,7 @@ go_on:
    if has_out goto do
    outport = get_hll_global 'stdout*'
 do:
-   $S0 = what # conversion
+   $S0 = what.'pr_repr'() # conversion
    $P0 = getattribute outport, 'stream'
    $P0.'puts'($S0)
    .return (what)
@@ -841,7 +832,7 @@ end:
 loop:		
 	 unless args goto end
 	 $P0 = shift args
-	 $S1 = $P0.'to_string'()
+	 $S1 = $P0.'pr_repr'()
 	 $S0 .= $S1
 	 goto loop
 end:

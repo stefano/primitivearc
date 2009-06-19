@@ -68,6 +68,10 @@
 	 .return ("hash")
 .end
 
+.sub 'pr_repr' :method
+	 .return ("#hash()")
+.end
+
 .sub 'to_string' :method
 	 .return ("#hash()")
 .end
@@ -78,58 +82,73 @@
 	 .return ("cons")
 .end
 
-.sub 'to_string' :method
-   .local string str
-	 .local pmc nil
-	 
-   str = "("
-	 $P0 = self.'car'()
-   $S0 = $P0.'to_string'()
-   str .= $S0
-   $P0 = self # $P0 holds current cons cell
-   nil = get_hll_global 'nil'
-cdr_to_str:
-   $P1 = $P0.'cdr'()
-   $I3 = issame $P1, nil
-   if $I3 goto end # check if the list is finished
-   $S1 = typeof $P1 # type of the cdr
-   if $S1 == 'cons' goto to_list # is it another cons?
-   str .= " . "
-	 $P2 = $P0.'cdr'()
-   $S0 = $P2.'to_string'()
-   str .= $S0 # add the non-cons object and finish
-   goto end
-to_list:
-   str .= " "
-   $P0 = $P0.'cdr'() # advance to next cons cell
-	 $P2 = $P0.'car'()
-   $S0 = $P2.'to_string'()
-   str .= $S0 # add the car
-   goto cdr_to_str
-end:
-   str .= ")"   
+.macro cons_string_methods(meth)
 
-   .return (str)
-.end
+	 .sub .meth :method
+			.local string str
+			.local pmc nil
+			
+			str = "("
+			$P0 = self.'car'()
+			$S0 = $P0..meth()
+			str .= $S0
+			$P0 = self # $P0 holds current cons cell
+			nil = get_hll_global 'nil'
+cdr_to_str:
+			$P1 = $P0.'cdr'()
+			$I3 = issame $P1, nil
+			if $I3 goto end # check if the list is finished
+			$S1 = typeof $P1 # type of the cdr
+			if $S1 == 'cons' goto to_list # is it another cons?
+			str .= " . "
+			$P2 = $P0.'cdr'()
+			$S0 = $P2..meth()
+			str .= $S0 # add the non-cons object and finish
+			goto end
+to_list:
+			str .= " "
+			$P0 = $P0.'cdr'() # advance to next cons cell
+			$P2 = $P0.'car'()
+			$S0 = $P2..meth()
+			str .= $S0 # add the car
+			goto cdr_to_str
+end:
+			str .= ")"   
+			
+			.return (str)
+	 .end
+.endm
+
+.cons_string_methods('to_string')
+.cons_string_methods('pr_repr')
 
 .namespace ['Tagged']
 
-.sub 'to_string' :method
-   $S0 = "#3(tagged "
-   $P0 = self[0]
-	 $S1 = $P0.'to_string'()
-   $S0 .= $S1
-   $S0 .= " "
-	 $P0 = self[1]
-   $S1 = $P0.'to_string'()
-   $S0 .= $S1
-   $S0 .= ")"
-   .return ($S0)
-.end
+.macro tagged_string_methods(meth)
+	 .sub .meth :method
+			$S0 = "#3(tagged "
+			$P0 = self[0]
+			$S1 = $P0..meth()
+			$S0 .= $S1
+			$S0 .= " "
+			$P0 = self[1]
+			$S1 = $P0..meth()
+			$S0 .= $S1
+			$S0 .= ")"
+			.return ($S0)
+	 .end
+.endm
+
+.tagged_string_methods('to_string')
+.tagged_string_methods('pr_repr')
 
 .namespace ['Inport']
 
-.sub 'get_string' :method
+.sub 'pr_repr' :method
+   .return ("#<input port>")
+.end
+
+.sub 'to_string' :method
    .return ("#<input port>")
 .end
 
@@ -168,11 +187,19 @@ end:
 
 .namespace ['Outport']
 
+.sub 'pr_repr' :method
+   .return ("#<output port>")
+.end
+
 .sub 'to_string' :method
    .return ("#<output port>")
 .end
 
 .namespace ['Eof']
+
+.sub 'pr_repr' :method
+   .return ("#<eof>")
+.end
 
 .sub 'to_string' :method
    .return ("#<eof>")
@@ -180,11 +207,19 @@ end:
 
 .namespace ['Socketport']
 
+.sub 'pr_repr' :method
+   .return ("#<socket>")
+.end
+
 .sub 'to_string' :method
    .return ("#<socket>")
 .end
 
 .namespace ['Thread']
+
+.sub 'pr_repr' :method
+   .return ("#<thread>")
+.end
 
 .sub 'to_string' :method
    .return ("#<thread>")

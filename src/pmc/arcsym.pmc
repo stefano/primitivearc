@@ -23,6 +23,11 @@ pmclass ArcSym
 		return Parrot_str_new_constant(INTERP, "sym");
 	}
 
+	METHOD pr_repr() {
+		STRING *res = PARROT_ARCSYM(SELF)->repr;
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
 		STRING *res = PARROT_ARCSYM(SELF)->repr;
 		RETURN(STRING *res);

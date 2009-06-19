@@ -36,6 +36,11 @@ pmclass ArcT
 		return Parrot_str_new_constant(INTERP, "t");
 	}
 
+	METHOD pr_repr() {
+		STRING *res = Parrot_str_new_constant(INTERP, "t");
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
 		STRING *res = Parrot_str_new_constant(INTERP, "t");
 		RETURN(STRING *res);

@@ -49,9 +49,6 @@
           cs (empty-state))
     (prn ".HLL 'Arc'")
     (prn ".loadlib 'primitivearc_ops'")
-    ; all the functions
-    (each f fns
-      (compile-fn (empty-state) f))
     ; all the constants
     (prn ".sub _const_init :load :init :anon")
     (each const consts
@@ -59,11 +56,14 @@
     (prn ".return ()")
     (prn ".end")
     ; entry function
-    (prn ".sub _main :load :init :anon")
+    (prn ".sub _main :init :load :anon")
     (compile-expr cs expr nil)
     (prn "set_hll_global '***', " (c-pop cs))
     (prn ".return ()")
-    (prn ".end")))
+    (prn ".end")
+    ; all the functions
+    (each f fns
+      (compile-fn (empty-state) f))))
 
 (let escape-table (listtab '((#\newline "\\n")
                              (#\\ "\\\\")

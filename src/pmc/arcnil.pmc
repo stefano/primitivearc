@@ -12,6 +12,11 @@ pmclass ArcNil
 		return Parrot_str_new_constant(INTERP, "nil");
 	}
 
+	METHOD pr_repr() {
+		STRING *res = Parrot_str_new_constant(INTERP, "nil");
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
 		STRING *res = Parrot_str_new_constant(INTERP, "nil");
 		RETURN(STRING *res);

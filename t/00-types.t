@@ -43,9 +43,9 @@ language_output_is('Arc', "(type (annotate 2 1))", "2\n", 'annotations');
 language_output_is('Arc', "(rep (annotate 2 1))", "1\n", 'annotations');
 
 ## strings
-language_output_is('Arc', '"a string"', "a string\n", 'strings');
-language_output_is('Arc', '"a string\n"', "a string\n\n", 'strings');
-language_output_is('Arc', '(set s "a string\n") (sref s #\o 0) s', "o string\n\n", 'sref on string');
+language_output_is('Arc', '"a string"', "\"a string\"\n", 'strings');
+language_output_is('Arc', '"a string\n"', "\"a string\\n\"\n", 'strings');
+language_output_is('Arc', '(set s "a string\n") (sref s #\o 0) s', "\"o string\\n\"\n", 'sref on string');
 language_output_is('Arc', '(len "a b c ")', "6\n", 'len string');
 
 ## tables

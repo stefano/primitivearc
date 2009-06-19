@@ -10,7 +10,13 @@ pmclass ArcFn
 		return Parrot_str_new_constant(INTERP, "function");
 	}
 
+	METHOD pr_repr() {
+		STRING *res = Parrot_str_new_constant(INTERP, "#<function>");
+		RETURN(STRING *res);
+	}
+
 	METHOD to_string() {
+		// TODO: return source code
 		STRING *res = Parrot_str_new_constant(INTERP, "#<function>");
 		RETURN(STRING* res);
 	}
