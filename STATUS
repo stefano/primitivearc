@@ -10,11 +10,11 @@ See README
 
 + if
 + fn 
-  - destructuring args
-  - optional args
+  + destructuring args
+  + optional args
   + rest arg
 + set
-- apply (it's there but doesn't work)
++ apply
 + quote
 
 * Basic macros
@@ -58,7 +58,7 @@ See README
 + writeb
 + write
 + disp
-+ read - no ssyntax
++ read
 - coerce
 - open-socket 
 - socket-accept

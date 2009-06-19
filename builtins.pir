@@ -565,6 +565,56 @@ error:
    .tailcall '_open_file'(cmd, $P0, 'wp')
 .end
 
+.include 'sockets.pasm'
+
+.sub 'open-socket'
+	 .param pmc port
+
+	 $I0 = port
+	 $P0 = new 'ArcSocket'
+	 $P1 = new 'Socket'
+	 setattribute $P0, 'stream', $P1
+
+	 .local pmc addr
+	 $P1.'socket'(.AF_INET, .SOCK_STREAM, .IPPROTO_TCP)
+	 addr = $P1.'sockaddr'('localhost', port)
+	 $P1.'bind'(addr)
+	 $P1.'listen'(1024) # randomly choosen
+
+	 .return ($P0)
+.end
+
+.sub 'socket-accept'
+	 .param pmc sock
+
+	 .local pmc in
+	 .local pmc out
+	 .local pmc ip
+	 
+	 $P0 = getattribute sock, 'stream'
+	 $P0 = $P0.'accept'()
+	 ## !! in & out share the same filehandle
+	 ## !! will create problems with close()
+	 in = new 'Inport'
+	 setattribute in, 'stream', $P0
+	 out = new 'Outport'
+	 setattribute out, 'stream', $P0
+	 ip = new 'ArcStr'
+	 ip = "" # TODO: implement
+	 $P0 = get_hll_global 'nil'
+	 $P0 = 'cons'(ip, $P0)
+	 $P0 = 'cons'(out, $P0)
+	 $P0 = 'cons'(in, $P0)
+
+	 .return ($P0)
+.end
+
+.sub 'client-ip'
+	 .param pmc sock
+	 ## TODO
+	 .return ("")
+.end
+
 .sub 'close'
    .param pmc port
    $P0 = getattribute port, 'stream'   
@@ -691,7 +741,7 @@ do:
 loop:
    $P1 = 'read'($P0)
    $S0 = typeof $P1
-   if $S0 == 'Eof' goto end
+   if $S0 == 'eof' goto end
    $P2 = 'eval'($P1)
    goto loop
 end:

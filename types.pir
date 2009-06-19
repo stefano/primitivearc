@@ -52,8 +52,8 @@
 	 
    $P0 = newclass 'Eof'
 
-   $P0 = newclass 'Socketport'
-   addattribute $P0, 'fd'
+   $P0 = newclass 'ArcSocket'
+	 addattribute $P0, 'stream' 
 
    ## threading
 
@@ -197,6 +197,14 @@ end:
 
 .namespace ['Eof']
 
+.sub 'name' :vtable :method
+	 .return ("eof")
+.end
+
+.sub 'get_bool' :vtable :method
+	 .return (1)
+.end
+
 .sub 'pr_repr' :method
    .return ("#<eof>")
 .end
@@ -205,7 +213,11 @@ end:
    .return ("#<eof>")
 .end
 
-.namespace ['Socketport']
+.namespace ['ArcSocket']
+
+.sub 'name' :vtable :method
+	 .return ("socket")
+.end
 
 .sub 'pr_repr' :method
    .return ("#<socket>")

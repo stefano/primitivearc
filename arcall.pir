@@ -131,6 +131,9 @@ ret_nil:
       $P0 = "Can't call a "
       $S0 = typeof what
       $P0 .= $S0
+			$P0 .= ": "
+			$S0 = what.'to_string'()
+			$P0 .= $S0
       .tailcall 'err'($P0)
    .end
 .endm
