@@ -11,7 +11,9 @@ pmclass ArcStr
 	}
 
 	VTABLE STRING* get_string() {
-		return Parrot_String_get_string(INTERP, SELF);
+		STRING *res;
+		GETATTR_String_str_val(INTERP, SELF, res);
+		return res;
 	}
 
 	VTABLE STRING* name() {

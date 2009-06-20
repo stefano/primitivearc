@@ -7,7 +7,9 @@ pmclass ArcNum
   maps Float {
 
 	VTABLE FLOATVAL get_number() {
-		return Parrot_Float_get_number(INTERP, SELF);
+		FLOATVAL f;
+		GETATTR_Float_fv(INTERP, SELF, f);
+		return f;
 	}
 
 	METHOD pr_repr() {

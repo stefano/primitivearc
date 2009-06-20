@@ -6,16 +6,21 @@
 ## simple function call
 ## ?? should break in arcall0 arcall1 arcall2 ... arcallany   ??
 ## ?? to avoid consing rest args ??
-.sub arcall :multi(Sub)
-   .param pmc fn
-   .param pmc args :slurpy
-   .tailcall fn(args :flat)
-.end
+.macro arcallwith(type)
+	 .sub arcall :multi(.type)
+			.param pmc fn
+			.param pmc args :slurpy
+			.tailcall fn(args :flat)
+	 .end
+.endm
 
-.sub arcall :multi(MultiSub)
-   .param pmc fn
-   .param pmc args :slurpy
-   .tailcall fn(args :flat)
+.arcallwith(Sub)
+.arcallwith(MultiSub)
+
+.sub arcall :multi(Cons)
+	 .param pmc fn
+	 .param pmc args :slurpy
+	 .tailcall arcall1(fn, args :flat)
 .end
 
 .sub arcall1 :multi(Sub)

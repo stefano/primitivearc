@@ -60,8 +60,8 @@ See README
 + disp
 + read
 - coerce
-- open-socket 
-- socket-accept
++ open-socket 
++ socket-accept
 - new-thread
 - kill-thread
 - break-thread

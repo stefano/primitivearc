@@ -4,11 +4,8 @@
 
 ## load ops
 .loadlib 'primitivearc_ops'
-
-.sub '__onload' :init
-   ## load dynamic PMCs
-   loadlib $P0, 'primitivearc_group'
-.end
+## load pmc
+.loadlib 'primitivearc_group'
 
 .include 'types.pir'
 .include 'symtable.pir'

@@ -19,11 +19,15 @@ pmclass ArcInt
 	}
 
 	VTABLE INTVAL get_integer() {
-		return Parrot_Integer_get_integer(INTERP, SELF);
+		INTVAL i;
+		GETATTR_Integer_iv(INTERP, SELF, i);
+		return i;
 	}
 
 	VTABLE FLOATVAL get_number() {
-		return Parrot_Integer_get_number(INTERP, SELF);
+		INTVAL i;
+		GETATTR_Integer_iv(INTERP, SELF, i);
+		return (FLOATVAL)i;
 	}
 
 	VTABLE STRING* name() {

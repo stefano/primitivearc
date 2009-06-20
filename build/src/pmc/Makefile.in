@@ -41,25 +41,25 @@ LINKARGS        := $(LDFLAGS) $(LD_LOAD_FLAGS) $(LIBPARROT)
 PRIMITIVEARC_GROUP := primitivearc_group
 
 PMC_SOURCES := \
+	arct.pmc \
   arcint.pmc \
   arcnum.pmc \
 	arcchar.pmc \
 	arcstr.pmc \
 	arcsym.pmc \
-	arct.pmc \
 	arcfn.pmc \
 	arcnil.pmc \
 	arccons.pmc
 
 OBJS := \
   lib-$(PRIMITIVEARC_GROUP)$(O) \
+	arct$(O) \
   arcint$(O) \
   arcnum$(O) \
 	arcchar$(O) \
 	arcstr$(O) \
 	arcsym$(O) \
 	arcfn$(O) \
-	arct$(O) \
 	arcnil$(O) \
 	arccons$(O)
 
@@ -80,17 +80,19 @@ CLEANUPS := \
 all: staging
 
 generate: $(PMC_SOURCES)
+	$(PMC2CD) arct.pmc
+	$(PMC2CC) arct.pmc
 	$(PMC2CD) $(PMC_SOURCES)
 	$(PMC2CC) $(PMC_SOURCES)
 	$(PMC2C) --library $(PRIMITIVEARC_GROUP) --c $(PMC_SOURCES)
 
 compile: generate
+	$(CC) $(CC_OUT)arct$(O) $(INCLUDES) $(CFLAGS) arct.c
 	$(CC) $(CC_OUT)arcint$(O) $(INCLUDES) $(CFLAGS) arcint.c
 	$(CC) $(CC_OUT)arcnum$(O) $(INCLUDES) $(CFLAGS) arcnum.c
 	$(CC) $(CC_OUT)arcchar$(O) $(INCLUDES) $(CFLAGS) arcchar.c
 	$(CC) $(CC_OUT)arcstr$(O) $(INCLUDES) $(CFLAGS) arcstr.c
 	$(CC) $(CC_OUT)arcsym$(O) $(INCLUDES) $(CFLAGS) arcsym.c
-	$(CC) $(CC_OUT)arct$(O) $(INCLUDES) $(CFLAGS) arct.c
 	$(CC) $(CC_OUT)arcnil$(O) $(INCLUDES) $(CFLAGS) arcnil.c
 	$(CC) $(CC_OUT)arccons$(O) $(INCLUDES) $(CFLAGS) arccons.c
 	$(CC) $(CC_OUT)arcfn$(O) $(INCLUDES) $(CFLAGS) arcfn.c

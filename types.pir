@@ -4,8 +4,7 @@
 
 .sub '_types_init' :anon :init :load
 
-   ## Cons cell
-   
+	 ## Cons cell
    $P0 = subclass 'ArcCons', 'Cons'
 
    ## Nil & T

@@ -565,7 +565,7 @@ error:
    .tailcall '_open_file'(cmd, $P0, 'wp')
 .end
 
-.include 'sockets.pasm'
+.include 'socket.pasm'
 
 .sub 'open-socket'
 	 .param pmc port
@@ -576,7 +576,7 @@ error:
 	 setattribute $P0, 'stream', $P1
 
 	 .local pmc addr
-	 $P1.'socket'(.AF_INET, .SOCK_STREAM, .IPPROTO_TCP)
+	 $P1.'socket'(.PIO_PF_INET, .PIO_SOCK_STREAM, .PIO_PROTO_TCP)
 	 addr = $P1.'sockaddr'('localhost', port)
 	 $P1.'bind'(addr)
 	 $P1.'listen'(1024) # randomly choosen
@@ -889,4 +889,24 @@ end:
 	 $P0 = new 'ArcStr'
 	 $P0 = $S0
 	 .return ($P0)
+.end
+
+.sub 'on-err'
+	 .param pmc err_fn
+	 .param pmc fn
+
+	 push_eh handle_err
+	 $P0 = 'arcall'(fn)
+#	 pop_eh
+	 .return ($P0)
+handle_err:
+	 .get_results ($P0)
+	 $P0 = get_hll_global 'nil'
+	 .tailcall 'arcall'(err_fn, $P0)
+.end
+
+.sub 'details'
+	 .param pmc ex
+	 $S0 = ex.'to_string'()
+	 .return ($S0)
 .end

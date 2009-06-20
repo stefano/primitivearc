@@ -7,7 +7,6 @@ PARROT_ARGS   :=
 VERSION       := @versiondir@
 BIN_DIR       := @bindir@
 LIB_DIR       := @libdir@$(VERSION)
-DOC_DIR       := @doc_dir@$(VERSION)
 MANDIR        := @mandir@$(VERSION)
 
 # Set up extensions
@@ -44,13 +43,13 @@ PRIMITIVEARC_GROUP := $(PMC_DIR)/primitivearc_group$(LOAD_EXT)
 PRIMITIVEARC_OPS := $(OPS_DIR)/primitivearc_ops$(LOAD_EXT)
 
 PMC_DEPS := build/src/pmc/Makefile.in \
+	$(PMC_DIR)/arct.pmc \
   $(PMC_DIR)/arcint.pmc \
   $(PMC_DIR)/arcnum.pmc \
 	$(PMC_DIR)/arcchar.pmc \
 	$(PMC_DIR)/arcstr.pmc \
 	$(PMC_DIR)/arcsym.pmc \
 	$(PMC_DIR)/arcfn.pmc \
-	$(PMC_DIR)/arct.pmc \
 	$(PMC_DIR)/arcnil.pmc \
 	$(PMC_DIR)/arccons.pmc
 
