@@ -1,16 +1,5 @@
 ; a server to avoid launching a new Arc for each test
 
-; arc2 def
-(set def (annotate 'mac
-               (fn (name parms . body)
-                 `(do (sref sig ',parms ',name)
-                      (safeset ,name (fn ,parms ,@body))))))
-
-; no prints
-(set safeset (annotate 'mac
-                  (fn (var val)
-                    `(do (set ,var ,val)))))
-
 (load "compiler/comp.arc")
 
 (def upto-eof (i)

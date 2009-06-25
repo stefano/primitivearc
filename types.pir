@@ -421,6 +421,17 @@ type_err:
    .tailcall 'err'("Wrong type passed as index to sref (cons)")
 .end
 
+# .sub 'sref' :multi(_, _, _)
+# 	 .param pmc x
+# 	 .param pmc y
+# 	 .param pmc z
+
+# 	 $S0 = "Can't sref "
+# 	 $S1 = x.'to_string'()
+# 	 $S0 .= $S1
+# 	 .tailcall 'err'($S0)
+# .end
+
 .sub 'type'
    .param pmc what
    $S0 = typeof what
@@ -430,3 +441,26 @@ tagged:
    $P0 = what[0]
    .return ($P0)
 .end
+
+## coercion
+
+.sub 'char->int'
+	 .param pmc char
+
+	 $S0 = char.'to_string'()
+	 $I0 = ord $S0
+
+	 .return ($I0)
+.end
+
+.sub 'int->char'
+	 .param pmc i
+
+	 $I0 = i
+	 $S0 = chr $I0
+	 $P0 = new 'ArcChar'
+	 $P0 = $S0
+
+	 .return ($P0)
+.end
+

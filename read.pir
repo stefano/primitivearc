@@ -191,7 +191,10 @@ eof_found:
    .param pmc rs
 loop:
    $S0 = rs.'get1'()
+	 $I0 = rs.'is_eof'()
+	 if $I0 goto end
    unless $S0 == "\n" goto loop
+end:		
 .end
 
 .sub '_skip_separators'
@@ -465,6 +468,28 @@ go_on:
 
 .include 'types_macros.pir'
 
+.sub 'ssyntax'
+   .param pmc sym
+
+   .local pmc tbl
+   tbl = get_hll_global 'ssyntax-table*'
+   $I0 = -1
+   $S0 = sym.'to_string'()
+   $I1 = length $S0
+loop:
+   $I0 = $I0 + 1
+   if $I0 == $I1 goto end
+   $S1 = substr $S0, $I0, 1
+   $P0 = tbl[$S1]
+   $I2 = defined $P0
+   unless $I2 goto loop
+	 $P0 = get_hll_global 't'
+   .return ($P0)
+end:
+	 $P0 = get_hll_global 'nil'
+   .return ($P0)
+.end
+
 .sub 'ssexpand'
    .param pmc sym
 
@@ -548,4 +573,8 @@ error:
    $P2 = 'intern'("quote")
    $P1 = 'list'($P2, $P1)
    .tailcall 'list'($P0, $P1)
+.end
+
+.sub 'quit'
+	 exit 0
 .end

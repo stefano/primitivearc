@@ -2,6 +2,15 @@
 ; compile an s-expr into PIR code
 ; code is emitted on stdout
 
+; from arc.arc (anarki)
+(def makeproper (lst)
+  (if (no (acons lst))
+      lst
+      (cons (car lst)
+            (if (alist (cdr lst))
+              (makeproper (cdr lst))
+              (list (cdr lst))))))
+
 (def cdddr (x)
   (cdr (cdr (cdr x))))
 
@@ -49,6 +58,7 @@
           cs (empty-state))
     (prn ".HLL 'Arc'")
     (prn ".loadlib 'primitivearc_ops'")
+    (prn ".loadlib 'primitivearc_group'")
     ; all the constants
     (prn ".sub _const_init :load :init :anon")
     (each const consts
@@ -83,7 +93,7 @@
       t (prn out-reg " = get_hll_global 't'")
       string (do
                (prn out-reg " = new 'ArcStr'")
-               (pr out-reg " = \"") 
+               (pr out-reg " = \"")
                (pr-escape e)
                (prn "\""))
       int (do 
@@ -107,7 +117,7 @@
     $function (compile-function cs e out-reg)
     $closure (compile-closure cs e out-reg)
     if (compile-if cs e out-reg is-tail)
-    set (compile-set cs e out-reg)
+    assign (compile-assign cs e out-reg)
     apply (compile-call cs (cdr e) out-reg is-tail t)
     ; else
     (compile-call cs e out-reg is-tail nil)))
@@ -116,7 +126,7 @@
   ; compile function args
   (each arg e
     (compile-expr cs arg nil))
-  (with (args (rev (map [c-pop cs] e)) ; pop args registers
+  (with (args (rev (map (fn (ignore) (c-pop cs)) e)) ; pop args registers
          _arcall (if is-apply 
                   "arcall"
                   (case (- (len e) 1) ; don't count function
@@ -233,11 +243,11 @@
            (self (cddr expr))))) (cdr expr)) ; cut 'if
      (prn end ":")))
 
-(def compile-set (cs expr out-reg)
+(def compile-assign (cs expr out-reg)
   (with (name expr.1
          val expr.2)
     (unless (and (isa name 'sym) (is (len expr) 3))
-      (err "wrong 'set form: " expr))
+      (err "wrong 'assign form: " expr))
     (compile-expr cs val nil)
     (prn out-reg " = " (c-pop cs))
     (if (alex cs name)

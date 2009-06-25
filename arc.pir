@@ -21,7 +21,8 @@
 
 		load_bytecode 'ac/boot.pbc'
 		load_bytecode 'ac/comp.pbc'
-				
+		load_bytecode 'ac/qq.pbc'
+
     ## register the sub _compile as the compilation function for Arc
     $P0 = get_hll_global '_compile_and_eval'
     compreg 'Arc', $P0
@@ -34,7 +35,7 @@
     ## default value for ***
     $P1 = get_hll_global 'nil'
     set_hll_global '***', $P1
-    #push_eh run_error
+		#push_eh run_error
 loop:
     unless iter goto end 
     $S0 = shift iter

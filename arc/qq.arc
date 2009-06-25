@@ -1,11 +1,6 @@
 ; quasiquoting
 
-(set and 
-  (annotate 'mac 
-    (fn (a b)
-      (list 'if a (list 'if b t)))))
-
-(set splice 
+(assign splice 
   (fn (l before)
     (if (and (no (acons l)) l)
       l
@@ -18,7 +13,7 @@
             (splice (cdr l) (+ before (list (splice (car l) nil)))))
           (splice (cdr l) (+ before (list (car l)))))))))
 
-(set eval-qq 
+(assign eval-qq 
   (fn (x level)
     (if (is level 0) x
         (atom x) (list 'quote x)
@@ -34,7 +29,7 @@
           (list 'quasiquote (eval-qq (cadr x) (+ level 1)))
         (cons 'list (map1 [eval-qq _ level] x)))))
 
-(set quasiquote 
+(assign quasiquote 
   (annotate 'mac 
     (fn (x)
       (splice (eval-qq x 1) nil))))

@@ -17,9 +17,9 @@ language_output_is('Arc', '(type (uniq))', "sym\n", 'uniq');
 
 ## file input
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & readc');
-(set in (infile "file_test.txt"))
-(set c1 (readc in))
-(set c2 (readc in))
+(assign in (infile "file_test.txt"))
+(assign c1 (readc in))
+(assign c2 (readc in))
 (close in)
 (write c1)
 c2
@@ -28,9 +28,9 @@ CODE
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & readb');
-(set in (infile "file_test.txt"))
-(set c1 (readb in))
-(set c2 (readb in))
+(assign in (infile "file_test.txt"))
+(assign c1 (readb in))
+(assign c2 (readb in))
 (close in)
 (write c1)
 c2
@@ -39,9 +39,9 @@ CODE
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & peekc');
-(set in (infile "file_test.txt"))
-(set c1 (peekc in))
-(set c2 (peekc in))
+(assign in (infile "file_test.txt"))
+(assign c1 (peekc in))
+(assign c2 (peekc in))
 (close in)
 (write c1)
 c2
@@ -51,8 +51,8 @@ RES
 
 ## full read functionality not tested here. just check it works on files
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & read');
-(set in (infile "file_test.txt"))
-(set s (read in))
+(assign in (infile "file_test.txt"))
+(assign s (read in))
 (close in)
 s
 CODE
@@ -60,8 +60,8 @@ OK
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & call-w/stdin');
-(set in (infile "file_test.txt"))
-(set s (call-w/stdin in read))
+(assign in (infile "file_test.txt"))
+(assign s (call-w/stdin in read))
 (close in)
 s
 CODE
@@ -70,8 +70,8 @@ RES
 
 ## echo must be present (likely to fail on Windows systems)
 language_output_is('Arc', << 'CODE', << 'RES', 'pipe-from');
-(set in (pipe-from "echo \"a\""))
-(set s (read in))
+(assign in (pipe-from "echo \"a\""))
+(assign s (read in))
 (close in)
 s
 CODE

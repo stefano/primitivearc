@@ -1,6 +1,6 @@
 Featurs currently implemented:
 
-+ means implemented, - still to implement
++ means implemented, - still to implement, / implemented but not tested
 
 * Basic features
 
@@ -59,11 +59,11 @@ See README
 + write
 + disp
 + read
-- coerce
+/ coerce
 + open-socket 
 + socket-accept
-- new-thread
-- kill-thread
+/ new-thread
+/ kill-thread
 - break-thread
 + sleep
 + system
@@ -71,31 +71,31 @@ See README
 ++ pipe-to (extra)
 + table
 + maptable
-- protect
+/ protect
 + rand
 + dir
 + file-exists
 + dir-exists
 + rmfile
-- macex
-- macex1
+/ macex
+/ macex1
 + eval
-- on-err
-- details
++ on-err
++ details
 + scar
 + scdr
 + sref on tables, strings, lists
 + bound
 + newstring
-- trunc
-- exact
-- msec
-- current-process-milliseconds
-- current-gc-milliseconds
-- seconds
-- client-ip
+/ trunc
+/ exact
+/ msec
+/ current-process-milliseconds
+/ current-gc-milliseconds
+/ seconds
+/ client-ip
 - atomic-invoke
 - dead
-- ssyntax
+/ ssyntax
 + ssexpand
-- quit
+/ quit

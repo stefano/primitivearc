@@ -4,22 +4,22 @@
 
 ; helper fns
 
-(set sig (table))
+(assign sig (table))
+(assign help* (table))
+(assign source-file* (table))
+(assign source* (table))
+(assign current-load-file* nil)
+
 ; TODO: make it really atomic
-(set atomic-invoke (fn (f) (f)))
+(assign atomic-invoke (fn (f) (f)))
 
-(set no (fn (x) (if x nil t)))
+(assign no (fn (x) (if x nil t)))
 
-(set sym intern)
-
-(let next 0
-  (def uniq ()
-    (= next (+ next 1))
-    (sym (string "gs" next))))
+(assign sym intern)
 
 (def atom (x) (no (is (type x) 'cons)))
 (def acons (x) (is (type x) 'cons))
-(set alist acons)
+(assign alist acons)
 
 (def isa (x what) (is (type x) what))
 
@@ -34,12 +34,42 @@
     (is (car l) x) x
     (mem x (cdr l))))
 
-(set coerce-table* (table))
+(assign coerce-table* (table))
 
 (def coerce (what into)
-  ((coerce-table* (cons (type what) into)) what))
+  (if (isa what into)
+    what
+    (let f (coerce-table* (cons (type what) into))
+      (if f
+        (f what)
+        (err (string "Can't coerce " what " into " into))))))
 
-(= (coerce-table* '(string . cons)) (fn (s) (str>lst s 0)))
+(def dcoerce (a b f)
+  (= (coerce-table* (cons a b)) f))
+
+(= (coerce-table* '(char . int)) char->int)
+(= (coerce-table* '(int . char)) int->char)
+
+(dcoerce 'char 'string string)
+(dcoerce 'char 'sym [sym (string _)])
+(dcoerce 'int 'string string)
+(dcoerce 'num 'string string)
+(dcoerce 'string 'sym sym)
+(dcoerce 'string 'cons [str>lst _ 0])
+
+(dcoerce 'string 'int 
+  [let it (read (instring _))
+    (if (isa it 'int)
+      it
+      (err (string "Can't coerce string " it " to int")))])
+
+(dcoerce 'cons 'string
+  [let o (outstring)
+    (call-w/stdout o (fn () (map1 pr _)))
+    (inside o)])
+
+(dcoerce 'nil 'string (fn (it) ""))
+(dcoerce 'symbol 'string string)
 
 (def str>lst (s pos)
   (if (< pos (len s))
@@ -66,15 +96,6 @@
                   (self (car x) (self (cdr x) acc))))
    x nil))
 
-; from arc.arc (anarki)
-(def makeproper (lst)
-  (if (no (acons lst))
-      lst
-      (cons (car lst)
-            (if (alist (cdr lst))
-              (makeproper (cdr lst))
-              (list (cdr lst))))))
-
 ; not the official some
 (def some (test l)
   (if l
@@ -99,4 +120,6 @@
          al)
     h))
 
-(set join +)
+(assign join +)
+
+(def exact (x) (isa x 'int))

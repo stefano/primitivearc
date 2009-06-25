@@ -26,11 +26,26 @@ loop:
 
 .sub 'err'
    .param pmc what
-   $S0 = _str_err(what)
+	 $S0 = _str_err(what)
    $P0 = new 'ArcStr'
-   set $P0, $S0
+	 $P0 = $S0
+
    die $P0
-   .return ($P0)
+#	 .return (what)
+.end
+
+.sub 'protect'
+	 .param pmc during
+	 .param pmc after
+
+	 push_eh error
+	 $P0 = 'arcall'(during)
+	 pop_eh
+	 .return ($P0)
+error:
+	 .local pmc ex
+	 .get_results(ex)
+	 .tailcall 'arcall'(after)
 .end
 
 .sub 'len' :multi(Cons)
@@ -61,11 +76,20 @@ end:
 .end
 
 .sub 'len' :multi(ArcStr)
-   .param pmc s
+   .param string s
 
    $S0 = s
    $I0 = length $S0
    .return ($I0)
+.end
+
+.sub 'len' :multi(_)
+	 .param pmc x
+
+	 $S0 = "Can't take len of "
+	 $S1 = x.'to_string'()
+	 $S0 .= $S1
+	 .tailcall 'err'($S0)
 .end
 
 ## arithmethic
@@ -398,6 +422,15 @@ end:
    $P0 = new 'Random'
    $I0 = $P0[max]
    .return ($I0)
+.end
+
+.sub 'trunc'
+	 .param pmc x
+
+	 $N0 = x
+	 $I0 = $N0
+
+	 .return ($I0)
 .end
 
 .sub 'ccc'
@@ -832,14 +865,43 @@ end:
    .return (table)
 .end
 
+.sub 'atomic-invoke'
+	 .param pmc f
+	 ## TODO: make really atomic
+	 .tailcall 'arcall'(f)
+.end
+
 ##!! doesn't work
 .sub 'new-thread'
    .param pmc fn
 
-   $P0 = new 'ParrotThread'
-   $P1 = get_hll_global 'arcall'
-   $P0.'run_clone'($P1, fn)
-   .return ($P0)
+	 .local pmc thr
+	 thr = new 'ParrotThread'
+   #.include 'cloneflags.pasm'
+   .local int flags
+   #flags  = .PARROT_CLONE_CODE
+   #flags |= .PARROT_CLONE_CLASSES
+	 #flags |= .PARROT_CLONE_HLL
+	 #flags |= .PARROT_CLONE_GLOBALS
+	 #flags |= .PARROT_CLONE_LIBRARIES
+	 #flags |= .PARROT_CLONE_RUNOPS
+
+	 thr.'run_clone'(fn)
+
+   .return (thr)
+.end
+
+.sub 'kill-thread'
+	 .param pmc thr
+	 thr.'kill'()
+	 $P0 = get_hll_global 'nil'
+	 .return ($P0)
+.end
+
+.sub 'break-thread'
+	 .param pmc thr
+	 $P0 = get_hll_global 'nil'
+	 .return ($P0)
 .end
 
 .sub 'bound'
@@ -897,7 +959,7 @@ end:
 
 	 push_eh handle_err
 	 $P0 = 'arcall'(fn)
-#	 pop_eh
+	 pop_eh
 	 .return ($P0)
 handle_err:
 	 .get_results ($P0)
@@ -909,4 +971,22 @@ handle_err:
 	 .param pmc ex
 	 $S0 = ex.'to_string'()
 	 .return ($S0)
+.end
+
+## only stubs
+
+.sub 'msec'
+   .return (0)
+.end
+
+.sub 'current-process-milliseconds'
+	 .return (0)
+.end
+
+.sub 'current-gc-milliseconds'
+	 .return (0)
+.end
+
+.sub 'seconds'
+	 .return (0)
 .end
