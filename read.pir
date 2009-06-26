@@ -52,6 +52,7 @@
    $P0["t"] = "\t"
    $P0["\\"] = "\\"
    $P0["\""] = "\""
+	 $P0["r"] = "\r"
    set_hll_global 'escape-table*', $P0
 
    ## Global character names table
@@ -59,6 +60,7 @@
    $P0["newline"] = "\n"
    $P0["space"] = " "
    $P0["tab"] = "\t"
+	 $P0["return"] = "\r"
    set_hll_global 'char-table*', $P0
    
    ## Global ssyntax table
@@ -181,7 +183,7 @@ keep_going:
    .tailcall $P0(rs)
 default:
    ## if the character isn't present in the read table, read a symbol
-   .tailcall _read_symbol(rs)
+   .tailcall _read_symbol(rs, 1)
 eof_found:      
    $P0 = new 'Eof'
    .return ($P0)
@@ -214,6 +216,8 @@ end:
 
 .sub '_read_symbol'
    .param pmc rs
+	 .param int do_ssexpand
+	 
    .local string result
 
    result = ""
@@ -235,6 +239,9 @@ end:
    if result == "t" goto ret_t
    if result == "nil" goto ret_nil
    $P0 = 'intern'(result)
+	 if do_ssexpand goto expand
+	 .return ($P0)
+expand:	
    .tailcall 'ssexpand'($P0)
 ret_t:
    $P0 = get_hll_global 't'
@@ -319,7 +326,7 @@ mk_symbol:
    rs.'get1'() # skip #
    $S0 = rs.'get1'()
    unless $S0 == "\\" goto error
-   $P0 = _read_symbol(rs)
+   $P0 = _read_symbol(rs, 0)
    $S0 = $P0.'to_string'() # get char name
    $S1 = ct[$S0]
    unless $S1 == "" goto ret_it
@@ -460,7 +467,7 @@ error:
    rs.'get1'() # skip ,
    $S0 = rs.'peek1'()
    unless $S0 == '@' goto go_on
-   type = "splice"
+   type = "unquote-splicing"
    rs.'get1'() # throw away '@'
 go_on:
    .tailcall _read_next_with_head(rs, type)

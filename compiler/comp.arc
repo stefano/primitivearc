@@ -76,6 +76,7 @@
       (compile-fn (empty-state) f))))
 
 (let escape-table (listtab '((#\newline "\\n")
+                             (#\return "\\r")
                              (#\\ "\\\\")
                              (#\tab "\\t")
                              (#\" "\\\"")))
@@ -163,10 +164,13 @@
     (emit-const const!expr)
     (prn "set_hll_global '" const!name "', " (c-pop cs))))
 
-(def emit-fn-head (cs name outer)
-  (if (iso outer "")
-    (prn ".sub " name)
-    (prn ".sub " name " :outer('" outer "')")))
+(def emit-fn-head (cs name dbg-name outer)
+  (pr ".sub '" (or dbg-name name) "' :nsentry('" name "')")
+  (if dbg-name
+    (pr " :subid('" name "')"))
+  (if (no (iso outer ""))
+    (pr " :outer('" outer "')"))
+  (prn))
 
 ; emit a sequence of operations
 ; if sequence is empty, emit code to return nil
@@ -193,7 +197,7 @@
           body (cdddr e))
     (unless (isa name 'sym)
       (err:string "not a symbol: " name))
-    (emit-fn-head cs name f!outer)
+    (emit-fn-head cs name f!dbg-name f!outer)
     (emit-args args)
     ; emit the body
     (reset-reg cs)
@@ -260,11 +264,15 @@
 (def a-fn (e)
   (and (acons e) (is (car e) 'fn)))
 
+(def a-fn-assign (e)
+  (and (acons e) (is (car e) 'assign) (a-fn (caddr e))))
+
 (def mk-const (name expr)
   (listtab (list (list 'name name) (list 'expr expr))))
 
-(def mk-fn (expr outer lex)
-  (listtab (list (list 'expr expr) (list 'outer outer) (list 'lex lex))))
+(def mk-fn (expr outer lex dbg-name)
+  (listtab (list (list 'expr expr) (list 'outer outer) 
+                 (list 'lex lex) (list 'dbg-name dbg-name))))
 
 (def arg-names (args)
   ; consider destructuring too
@@ -273,7 +281,8 @@
     (list args)
     (flat (map [if (is-opt _) (cadr _) _] (makeproper args)))))
 
-(def collect-fns-and-consts (expr lex outer is-seq consts)
+(def collect-fns-and-consts (expr lex outer is-seq consts (o have-name nil))
+;  (ero (string "collect: " expr))
   (if
     (in (e-type expr) 'sym 't 'nil) 
       (list nil nil expr)
@@ -282,19 +291,27 @@
         (list nil nil (consts expr))
         (let name (uniq)
           (= (consts expr) name)
+          ;(ero (string "    name: " name " -> " expr))
           (list nil (list (mk-const name expr)) name)))
+    (a-fn-assign expr)
+      (let (f c e) (collect-fns-and-consts (caddr expr) lex outer 
+                                           is-seq consts (cadr expr))
+        (list f c (list 'assign (cadr expr) e)))
     (a-fn expr)
       (withs (name (uniq)
               args expr.1
               body (cddr expr)
               new-lex (join (arg-names args) lex))
-        (let (fns consts expr) (collect-fns-and-consts body new-lex name t consts)
+        (let (fns consts expr) (collect-fns-and-consts body new-lex 
+                                                       name t consts)
           (list (cons (mk-fn (cons '$fn (cons name (cons args expr)))
-                              outer new-lex)
+                              outer new-lex have-name)
                       fns)
                 consts (list (if (iso outer "") '$function '$closure) name))))
     (let res (map [collect-fns-and-consts _ lex outer nil consts] expr)
+      ;(ero "res: " res)
       (let res (apply map list res)
+        ;(ero "  res2: " res)
         (list (apply join res.0) (apply join res.1) res.2)))))
 
 (def mac-ex (e)

@@ -27,7 +27,10 @@
 (def cddr (x) (cdr (cdr x)))
 
 (def map1 (f l)
-  (if l (cons (f (car l)) (map1 f (cdr l)))))
+  ((afn (l acc)
+     (if l
+       (self (cdr l) (cons (f (car l)) acc))
+       (rev acc))) l nil))
 
 (def mem (x l)
   (if (no l) l
@@ -97,21 +100,21 @@
    x nil))
 
 ; not the official some
-(def some (test l)
+(def at-least-one (test l)
   (if l
-    (or (test (car l)) (some test (cdr l)))
+    (or (test (car l)) (at-least-one test (cdr l)))
     nil))
 
 ; from arc.arc (minus string stuff)
 (def map (f . seqs)
   (if (no (cdr seqs)) 
        (map1 f (car seqs))
-      ((afn (seqs)
-        (if (some no seqs)  
-            nil
-            (cons (apply f (map1 car seqs))
-                  (self (map1 cdr seqs)))))
-       seqs)))
+      ((afn (seqs acc)
+        (if (at-least-one no seqs)  
+            (rev acc)
+            (self (map1 cdr seqs) 
+                  (cons (apply f (map1 car seqs)) acc))))
+       seqs nil)))
 
 ; from arc.arc
 (def listtab (al)

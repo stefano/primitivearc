@@ -67,6 +67,10 @@
 	 .return ("hash")
 .end
 
+.sub 'get_bool' :vtable :method
+	 .return (1)
+.end
+
 .sub 'pr_repr' :method
 	 .return ("#hash()")
 .end
