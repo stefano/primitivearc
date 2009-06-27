@@ -23,6 +23,6 @@
       (prn "Serving: " ip)
       (let it `((fn () ,@(ss-expand (upto-eof i))))
         (w/stdout o
-          (errsafe (tl-compile it))))
+          (tl-compile it)))
       (close i)
       (close o))))

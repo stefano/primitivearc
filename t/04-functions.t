@@ -10,7 +10,7 @@ use Test::More tests => 25;
 use Parrot::Test;
 
 language_output_is('Arc', '(fn ())', "#<function>\n", "simple fn");
-language_output_is('Arc', '(type (fn ()))', "function\n", "type fn");
+language_output_is('Arc', '(type (fn ()))', "fn\n", "type fn");
 language_output_is('Arc', '((fn (x) x) 9)', "9\n", "id fn");
 language_output_is('Arc', '((fn (x y) y) 1 2)', "2\n", "2 args fn");
 language_output_is('Arc', '((fn r r) 1 2 3)', "(1 2 3)\n", "rest arg fn");

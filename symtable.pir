@@ -39,6 +39,10 @@ end:
    $S0 = $P0
    $S1 = "gs"
    $S1 .= $S0
+	 $S1 .= "_"
+	 $I0 = time
+	 $S0 = $I0
+	 $S1 .= $S0
    $P0 += 1
    set_hll_global 'gensym-count', $P0
    $P1 = new 'ArcSym'

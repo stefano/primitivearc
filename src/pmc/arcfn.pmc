@@ -7,7 +7,7 @@ pmclass ArcFn
   maps Sub {
 
 	VTABLE STRING* name() {
-		return Parrot_str_new_constant(INTERP, "function");
+		return Parrot_str_new_constant(INTERP, "fn");
 	}
 
 	METHOD pr_repr() {

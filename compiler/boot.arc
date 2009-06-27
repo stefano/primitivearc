@@ -126,3 +126,8 @@
 (assign join +)
 
 (def exact (x) (isa x 'int))
+
+(def load-and-dump (file-in file-out)
+  (let o (outfile file-out)
+    (call-w/stdout o (fn () (load file-in t)))
+    (close o)))

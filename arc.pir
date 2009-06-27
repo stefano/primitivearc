@@ -22,7 +22,8 @@
 		load_bytecode 'ac/boot.pbc'
 		load_bytecode 'ac/comp.pbc'
 		load_bytecode 'ac/qq.pbc'
-
+		load_bytecode 'aa.pbc'
+		
     ## register the sub _compile as the compilation function for Arc
     $P0 = get_hll_global '_compile_and_eval'
     compreg 'Arc', $P0

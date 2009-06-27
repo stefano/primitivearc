@@ -147,6 +147,11 @@
       (prn " :flat)")
       (prn ")"))))
 
+;(def compile-const-ref (cs e out-reg)
+;  (let name (uniq)
+;    (prn ".const 'Sub' " name " = '" (cadr e) "'")
+;    (prn out-reg " = " name)))
+
 (def compile-const (cs const)
   (let emit-const (afn (e)
                     (if 
@@ -161,13 +166,18 @@
                                  (prn (c-push cs) " = 'cons'(" b "," a ")")))
                         ; else
                         (compile-expr cs e nil))))
+    ;(prn ".sub '" const!name "' :subid('" const!name "') :immediate")
     (emit-const const!expr)
+    ;(prn ".return (" (c-pop cs) ")")
+    ;(prn ".end")))
     (prn "set_hll_global '" const!name "', " (c-pop cs))))
 
 (def emit-fn-head (cs name dbg-name outer)
-  (pr ".sub '" (or dbg-name name) "' :nsentry('" name "')")
-  (if dbg-name
-    (pr " :subid('" name "')"))
+  ;(pr ".sub '" (or dbg-name name) "' :nsentry('" name "')")
+  ;(if dbg-name
+  ;  (pr " :subid('" name "')"))
+  (pr ".sub '" (or dbg-name name) "'")
+  (pr " :subid('" name "')")
   (if (no (iso outer ""))
     (pr " :outer('" outer "')"))
   (prn))
@@ -191,6 +201,7 @@
 ; takes a fn-info object
 ; ($fn name (arg1 ... . rest-arg) ...)
 (def compile-fn (cs f)
+  ;(ero "compiling: " (or f!dbg-name (cadr f!expr)))
   (withs (e f!expr
           name e.1
           args (collect-args e.2)
@@ -211,8 +222,11 @@
 ; compile closure creation form
 ; ($closure code-name)
 (def compile-closure (cs expr out-reg)
-  (prn out-reg " = get_hll_global '" expr.1 "'")
-  (prn out-reg " = newclosure " out-reg))
+;  (prn out-reg " = get_hll_global '" expr.1 "'")
+;  (prn out-reg " = newclosure " out-reg))
+  (let name (uniq)
+    (prn ".const 'Sub' " name " = '" expr.1 "'")
+    (prn out-reg " = newclosure " name)))
 
 ; compile function creation form
 ; ($function code-name)
@@ -292,6 +306,7 @@
         (let name (uniq)
           (= (consts expr) name)
           ;(ero (string "    name: " name " -> " expr))
+          ; TODO: optimize simple constants (int, num, char, string)
           (list nil (list (mk-const name expr)) name)))
     (a-fn-assign expr)
       (let (f c e) (collect-fns-and-consts (caddr expr) lex outer 

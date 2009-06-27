@@ -486,6 +486,8 @@ end:
 
 .sub 'eval'
    .param pmc what
+	 .param pmc send_pir_to_stdout :optional
+	 
 	 .local pmc out
 	 out = 'outstring'()
 	 $P1 = get_hll_global 'stdout*'
@@ -495,7 +497,9 @@ end:
 	 set_hll_global 'stdout*', $P1
    $P1 = compreg 'PIR'
 	 $P0 = 'inside'(out)
-#	 say $P0
+	 if_null send_pir_to_stdout, execute
+	 'prn'($P0)
+execute:				
    $P0 = $P1($P0)
    $P0()
    $P0 = get_hll_global '***' # !! I don't like this
@@ -768,6 +772,7 @@ do:
 
 .sub 'load'
    .param pmc file
+	 .param pmc save_pir :optional
 
    $P0 = 'infile'(file)
    $P2 = get_hll_global 'nil'
@@ -775,7 +780,7 @@ loop:
    $P1 = 'read'($P0)
    $S0 = typeof $P1
    if $S0 == 'eof' goto end
-   $P2 = 'eval'($P1)
+   $P2 = 'eval'($P1, save_pir)
    goto loop
 end:
    .return ($P2)
@@ -859,7 +864,7 @@ loop:
    unless iter goto end
    $P0 = shift iter
    $P1 = table[$P0]
-   arcall2(fn, $P0, $P1)
+	 arcall2(fn, $P0, $P1)
    goto loop
 end:
    .return (table)
