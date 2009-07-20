@@ -22,7 +22,7 @@ pmclass ArcCons
 
 	VTABLE void init() {
 		PMC_data(SELF) = mem_allocate_zeroed_typed(Parrot_ArcCons_attributes);
-		PObj_custom_mark_SET(SELF);
+		PObj_custom_mark_destroy_SETALL(SELF);
 	}
 	
 	VTABLE void mark() {
@@ -31,14 +31,16 @@ pmclass ArcCons
 			pobject_lives(INTERP, (PObj *)c->the_car);
 		if (c->the_cdr)
 			pobject_lives(INTERP, (PObj *)c->the_cdr);
-		/*
-		PMC *obj;
-		GET_ATTR_the_car(INTERP, SELF, obj);
-		pobject_lives(INTERP, (PObj*)obj);
-		GET_ATTR_the_cdr(INTERP, SELF, obj);
-		pobject_lives(INTERP, (PObj*)obj);*/
 	}
-
+	
+	VTABLE void destroy() {
+		Parrot_ArcCons_attributes *c = PARROT_ARCCONS(SELF);
+		if (c) {
+			mem_sys_free(c);
+			PMC_data(SELF) = NULL;
+		}
+	}
+	
 	VTABLE STRING* name() {
 		return Parrot_str_new_constant(INTERP, "cons");
 	}
