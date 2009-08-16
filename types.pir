@@ -440,10 +440,14 @@ type_err:
    .param pmc what
    $S0 = typeof what
    if $S0 == 'Tagged' goto tagged
+	 if $S0 == 'Sub' goto fn
+	 if $S0 == 'MultiSub' goto fn
    .tailcall 'intern'($S0)
 tagged:
    $P0 = what[0]
-   .return ($P0)
+	 .return ($P0)
+fn:
+	 .tailcall 'intern'("fn")
 .end
 
 ## coercion

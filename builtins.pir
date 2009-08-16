@@ -221,24 +221,16 @@ no:
 
 	 .local pmc nil
 	 nil = get_hll_global 'nil'
-loop:
+
 	 $P0 = car(a)
 	 $P1 = car(b)
 	 $P2 = 'iso'($P0, $P1)
-	 unless $P2 goto no
-	 a = cdr(a)
-	 b = cdr(b)
-	 unless a goto nil_b
-	 if b goto loop
-	 goto no
-nil_b:
-	 if b goto no
-	 goto yes
-no:
+	 if $P2 goto try_cdr
 	 .return (nil)
-yes:
-	 $P0 = get_hll_global 't'
-	 .return ($P0)
+try_cdr:				
+	 $P0 = cdr(a)
+	 $P1 = cdr(b)
+	 .tailcall 'iso'($P0, $P1)
 .end
 
 .sub 'iso' :multi(_, _)
