@@ -19,6 +19,12 @@
 		.local int is_pir
 		is_pir = 0
 
+		## save start up time
+		$N0 = time
+		$P0 = new 'ArcNum'
+		$P0 = $N0
+		set_hll_global '$startup-time', $P0
+		
 		load_bytecode 'ac/boot.pbc'
 		load_bytecode 'ac/comp.pbc'
 		load_bytecode 'ac/qq.pbc'
@@ -36,7 +42,7 @@
     ## default value for ***
     $P1 = get_hll_global 'nil'
     set_hll_global '***', $P1
-		#push_eh run_error
+		push_eh run_error
 loop:
     unless iter goto end 
     $S0 = shift iter
@@ -66,7 +72,7 @@ run_error:
 eval_mode:
     $P0 = getstdin
 loop2:
-    #push_eh error # never give up
+    push_eh error # never give up
     $S0 = $P0.'readline_interactive'( 'arc> ' )
     $P2 = _compile_and_eval($S0)
 		##print ' -> '

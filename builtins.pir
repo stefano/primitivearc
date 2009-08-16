@@ -428,9 +428,14 @@ end:
 .sub 'ccc'
    .param pmc f
 
-   interpinfo $P0, .INTERPINFO_CURRENT_CONT
-
-   .tailcall f($P0)
+	 $P0 = new 'Continuation'
+	 set_addr $P0, continue
+   $P0 = f($P0)
+continue:
+#	 .local pmc res
+#   .get_results (res)
+#	 .return (res)
+	 .return ($P0)
 .end
 
 .sub 'pr'
@@ -984,7 +989,13 @@ handle_err:
 ## only stubs
 
 .sub 'msec'
-   .return (0)
+	 $N0 = time
+	 $P0 = get_hll_global '$startup-time'
+	 $N1 = $P0
+	 $N0 = $N0 - $N1
+	 $N0 = $N0*1000000
+	 $I0 = $N0
+   .return ($I0)
 .end
 
 .sub 'current-process-milliseconds'
