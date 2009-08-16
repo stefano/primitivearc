@@ -291,7 +291,7 @@ end:
    nil = get_hll_global 'nil'
    last = nil
    res = nil
-   iter = new 'Iterator', elems
+   iter = elems
 
 start:	
    unless iter goto end
@@ -451,7 +451,7 @@ tagged:
 .sub 'char->int'
 	 .param pmc char
 
-	 $S0 = char.'to_string'()
+	 $S0 = char.'pr_repr'()
 	 $I0 = ord $S0
 
 	 .return ($I0)

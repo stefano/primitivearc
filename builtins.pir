@@ -100,7 +100,7 @@ end:
    .sub .name :multi()
       .param pmc args :slurpy
 
-      $P1 = new 'Iterator', args
+      $P1 = args
       unless $P1 goto zero_args
       $P0 = shift $P1
 loop:
@@ -187,7 +187,7 @@ zero_args:
 			.param pmc args :slurpy
 			.local pmc nil
 			nil = get_hll_global 'nil'
-			$P0 = new 'Iterator', args
+			$P0 = args
 			unless $P0 goto yes
 			$P1 = shift $P0
 			$P2 = shift $P0
@@ -295,7 +295,7 @@ true:
 			.param pmc args :slurpy
 			.local pmc nil
 			nil = get_hll_global 'nil'
-			$P0 = new 'Iterator', args
+			$P0 = args
 			unless $P0 goto yes
 			$P1 = shift $P0
 			unless $P0 goto yes
@@ -484,9 +484,20 @@ end:
 	 .return ($P1)
 .end
 
+.sub '_wrap_fn'
+	 .param pmc x
+
+	 $P0 = 'intern'("fn")
+	 $P1 = get_hll_global 'nil'
+	 $P0 = 'list'($P0, $P1, x)
+	 .tailcall 'list'($P0)
+.end
+
 .sub 'eval'
    .param pmc what
 	 .param pmc send_pir_to_stdout :optional
+
+	 what = '_wrap_fn'(what)
 	 
 	 .local pmc out
 	 out = 'outstring'()
@@ -859,7 +870,7 @@ false:
 
    .local pmc iter
 
-   iter = new 'Iterator', table
+   iter = table
 loop:
    unless iter goto end
    $P0 = shift iter

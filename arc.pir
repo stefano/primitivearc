@@ -30,7 +30,7 @@
     
     ## for every file in the command line, compile it
     .local pmc iter
-    iter = new 'Iterator', args
+    iter = args
     $S0 = shift iter # skip first arg (the compiler program)
 
     ## default value for ***
@@ -45,14 +45,14 @@ loop:
 		$S0 = shift iter
 		is_pir = 1
 go_on:
-    $S0 = file_to_string($S0)
 		unless is_pir goto compile_arc
+		$S0 = file_to_string($S0)
 		$P0 = compreg 'PIR'
 		$P0 = $P0($S0)
 		$P0()
 		goto loop
 compile_arc:		
-    $P0 = _compile_and_eval($S0)
+    $P0 = 'load'($S0)#_compile_and_eval($S0)
     goto loop
 end:
     $P1 = get_hll_global '***'

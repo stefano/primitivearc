@@ -34,7 +34,7 @@ language_output_is('Arc', '(len (list 1 2 (list 5 6) 7))', "4\n", 'len list');
 
 ## symbols
 language_output_is('Arc', "'car", "car\n", 'sym');
-language_output_is('Arc', "(assign car 1) car", "1\n", 'sym');
+language_output_is('Arc', "(assign c 1) c", "1\n", 'sym');
 language_output_is('Arc', '(intern "CkL")', "CkL\n", 'sym');
 
 ## annotations

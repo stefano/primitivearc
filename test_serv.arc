@@ -15,6 +15,12 @@
                        l)
       (acons l) (cons (ss-expand (car l)) (ss-expand (cdr l)))))
 
+; no prints
+(assign def (annotate 'mac
+               (fn (name parms . body)
+                 `(do (sref sig ',parms ',name)
+                      (assign ,name (fn ,parms ,@body))))))
+
 (w/socket s 4321
   (prn "Started")
   (while t

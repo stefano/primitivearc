@@ -30,7 +30,7 @@ language_output_is('Arc', << 'CODE', << 'RES', 'mac');
       (list '+ n 1))))
 (m1 90)
 CODE
-(91)
+91
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'macex1');

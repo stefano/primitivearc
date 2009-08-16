@@ -28,9 +28,9 @@ pmclass ArcCons
 	VTABLE void mark() {
 		Parrot_ArcCons_attributes *c = PARROT_ARCCONS(SELF);
 		if (c->the_car)
-			pobject_lives(INTERP, (PObj *)c->the_car);
+			Parrot_gc_mark_PObj_alive(INTERP, (PObj *)c->the_car);
 		if (c->the_cdr)
-			pobject_lives(INTERP, (PObj *)c->the_cdr);
+			Parrot_gc_mark_PObj_alive(INTERP, (PObj *)c->the_cdr);
 	}
 	
 	VTABLE void destroy() {
