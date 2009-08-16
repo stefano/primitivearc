@@ -127,6 +127,14 @@
 
 (def exact (x) (isa x 'int))
 
+; from arc.arc
+(def assoc (key al)
+  (if (atom al)
+       nil
+      (and (acons (car al)) (is (caar al) key))
+       (car al)
+      (assoc key (cdr al))))
+
 (def load-and-dump (file-in file-out)
   (let o (outfile file-out)
     (call-w/stdout o (fn () (load file-in t)))

@@ -53,8 +53,9 @@
 
 (def tl-compile (e)
   (withs (consts-tbl (table)
-          (fns consts expr) (collect-fns-and-consts (mac-ex e) nil 
-                                                    "" nil consts-tbl)
+          e (mac-ex e)
+          e (a-conv e)
+          (fns consts expr) (collect-fns-and-consts e nil "" nil consts-tbl)
           cs (empty-state))
     (prn ".HLL 'Arc'")
     (prn ".loadlib 'primitivearc_ops'")
@@ -121,7 +122,27 @@
     assign (compile-assign cs e out-reg)
     apply (compile-call cs (cdr e) out-reg is-tail t)
     ; else
-    (compile-call cs e out-reg is-tail nil)))
+    (if (a-let e)
+      (compile-let cs e out-reg is-tail)
+      (compile-call cs e out-reg is-tail nil))))
+
+(def compile-let (cs e out-reg is-tail)
+  (with (args (collect-args ((car e) 1))
+         body (cddr (car e))
+         values (cdr e))
+    (map (fn (arg val)
+           (compile-expr cs val nil)
+           (prn ".local pmc " (arg-p-name arg))
+           (prn (arg-p-name arg) " = " (c-pop cs))
+           ; FIX FIX FIX: emit-arg-init doesn't work in this case
+           ; (emit-arg-init arg)
+         )
+         args values)
+    (let old cs!lex
+      (= cs!lex (join (arg-names ((car e) 1)) cs!lex))
+      (compile-seq cs body is-tail)
+      (= cs!lex old))
+    (prn out-reg " = " (c-pop cs))))
 
 (def compile-call (cs e out-reg is-tail is-apply)
   ; compile function args
@@ -184,14 +205,14 @@
 
 ; emit a sequence of operations
 ; if sequence is empty, emit code to return nil
-(def compile-seq (cs seq)
+(def compile-seq (cs seq is-tail)
   (if (no seq)
-    (compile-expr cs nil t)
+    (compile-expr cs nil is-tail)
     ((afn (e)
        (if 
          (no e) nil
          (no (cdr e)) ; last expression
-           (compile-expr cs (car e) t)
+           (compile-expr cs (car e) is-tail)
          (do
            (compile-expr cs (car e) nil)
            (c-pop cs) ; discard ret. value
@@ -214,7 +235,7 @@
     (reset-reg cs)
     (let old cs!lex
       (= cs!lex f!lex)
-      (compile-seq cs body)
+      (compile-seq cs body t)
       (= cs!lex old))
     (prn ".return (" (c-pop cs) ")")
     (prn ".end")))
@@ -295,6 +316,29 @@
     (list args)
     (flat (map [if (is-opt _) (cadr _) _] (makeproper args)))))
 
+(def a-let (e)
+  (and (acons e) (a-fn (car e))))
+
+(def map1-imp (f l)
+  (if 
+    (no l) nil
+    (atom l) (f l)
+    (cons (f (car l)) (map1-imp f (cdr l)))))
+
+; alpha-conversion
+(def a-conv (e (o transf))
+  (if
+    (atom e)
+      (or (cdr (assoc e transf)) e)
+    (aquote e) e
+    (a-fn e)
+      (withs (args (arg-names (cadr e))
+              new-args (map [uniq] args)
+              transf (join (map cons args new-args) transf))
+        (map [a-conv _ transf] e))
+    ; else
+    (map1-imp [a-conv _ transf] e)))
+
 (def collect-fns-and-consts (expr lex outer is-seq consts (o have-name nil))
 ;  (ero (string "collect: " expr))
   (if
@@ -323,6 +367,16 @@
                               outer new-lex have-name)
                       fns)
                 consts (list (if (iso outer "") '$function '$closure) name))))
+    (a-let expr)
+      (withs (args ((car expr) 1)
+              body (cddr (car expr))
+              (fval cval vals) (collect-fns-and-consts (cdr expr) lex outer t
+                                                       consts)
+              new-lex (join (arg-names args) lex)
+              (fns consts expr) (collect-fns-and-consts body new-lex outer t 
+                                                        consts))
+        (list (join fval fns) (join cval consts) 
+              (cons (cons 'fn (cons args expr)) vals)))
     (let res (map [collect-fns-and-consts _ lex outer nil consts] expr)
       ;(ero "res: " res)
       (let res (apply map list res)
