@@ -55,7 +55,9 @@
   (withs (consts-tbl (table)
           e (mac-ex e)
           e (a-conv e)
-          (fns consts expr) (collect-fns-and-consts e nil "" nil consts-tbl)
+          main-id (uniq)
+          (fns consts expr) (collect-fns-and-consts e nil main-id
+                                                    t nil consts-tbl)
           cs (empty-state))
     (prn ".HLL 'Arc'")
     (prn ".loadlib 'primitivearc_ops'")
@@ -67,7 +69,7 @@
     (prn ".return ()")
     (prn ".end")
     ; entry function
-    (prn ".sub _main :init :load :anon")
+    (prn ".sub _main :init :load :anon :subid('" main-id "')")
     (compile-expr cs expr nil)
     (prn "set_hll_global '***', " (c-pop cs))
     (prn ".return ()")
@@ -129,15 +131,15 @@
 (def compile-let (cs e out-reg is-tail)
   (with (args (collect-args ((car e) 1))
          body (cddr (car e))
-         values (cdr e))
-    (map (fn (arg val)
-           (compile-expr cs val nil)
-           (prn ".local pmc " (arg-p-name arg))
-           (prn (arg-p-name arg) " = " (c-pop cs))
-           ; FIX FIX FIX: emit-arg-init doesn't work in this case
-           ; (emit-arg-init arg)
-         )
-         args values)
+         vals (cdr e))
+    ((afn (args vals)
+        (if args
+          (if (is (arg-type (car args)) 'rest)
+            (emit-local-init cs (car args) vals vals)
+            (do
+              (emit-local-init cs (car args) (car vals) vals)
+              (self (cdr args) (cdr vals))))))
+     args vals)
     (let old cs!lex
       (= cs!lex (join (arg-names ((car e) 1)) cs!lex))
       (compile-seq cs body is-tail)
@@ -339,7 +341,7 @@
     ; else
     (map1-imp [a-conv _ transf] e)))
 
-(def collect-fns-and-consts (expr lex outer is-seq consts (o have-name nil))
+(def collect-fns-and-consts (expr lex outer is-main is-seq consts (o have-name nil))
 ;  (ero (string "collect: " expr))
   (if
     (in (e-type expr) 'sym 't 'nil) 
@@ -353,7 +355,7 @@
           ; TODO: optimize simple constants (int, num, char, string)
           (list nil (list (mk-const name expr)) name)))
     (a-fn-assign expr)
-      (let (f c e) (collect-fns-and-consts (caddr expr) lex outer 
+      (let (f c e) (collect-fns-and-consts (caddr expr) lex outer is-main
                                            is-seq consts (cadr expr))
         (list f c (list 'assign (cadr expr) e)))
     (a-fn expr)
@@ -362,22 +364,22 @@
               body (cddr expr)
               new-lex (join (arg-names args) lex))
         (let (fns consts expr) (collect-fns-and-consts body new-lex 
-                                                       name t consts)
+                                                       name nil t consts)
           (list (cons (mk-fn (cons '$fn (cons name (cons args expr)))
                               outer new-lex have-name)
                       fns)
-                consts (list (if (iso outer "") '$function '$closure) name))))
-    (a-let expr)
+                consts (list (if is-main '$function '$closure) name))))
+    (and (no is-seq) (a-let expr))
       (withs (args ((car expr) 1)
               body (cddr (car expr))
-              (fval cval vals) (collect-fns-and-consts (cdr expr) lex outer t
-                                                       consts)
+              (fval cval vals) (collect-fns-and-consts (cdr expr) lex outer nil
+                                                       t consts)
               new-lex (join (arg-names args) lex)
-              (fns consts expr) (collect-fns-and-consts body new-lex outer t 
-                                                        consts))
+              (fns consts expr) (collect-fns-and-consts body new-lex outer nil
+                                                        t consts))
         (list (join fval fns) (join cval consts) 
               (cons (cons 'fn (cons args expr)) vals)))
-    (let res (map [collect-fns-and-consts _ lex outer nil consts] expr)
+    (let res (map [collect-fns-and-consts _ lex outer is-main nil consts] expr)
       ;(ero "res: " res)
       (let res (apply map list res)
         ;(ero "  res2: " res)
@@ -452,6 +454,13 @@
     rest (pr-param (arg-p-name a) " :slurpy")
    (err:string "Unknown arg type: " a)))
 
+(def emit-arg-dest (a)
+  (each loc (arg-expr a)
+    (prn ".local pmc " (arg-p-name loc))
+    (if (arg-name loc)
+      (pr-lex (arg-name loc) (arg-p-name loc)))
+    (prn (arg-p-name loc) " = " (arg-expr loc))))
+
 ; emit initialization code for arg
 (def emit-arg-init (a)
   (case (arg-type a)
@@ -463,15 +472,36 @@
           (compile-expr cs (arg-expr a) nil)
           (prn (arg-p-name a) " = " (c-pop cs))
           (prn next ":"))
-    dest (each loc (arg-expr a)
-           (prn ".local pmc " (arg-p-name loc))
-           (if (arg-name loc)
-             (pr-lex (arg-name loc) (arg-p-name loc)))
-           (prn (arg-p-name loc) " = " (arg-expr loc)))
+    dest (emit-arg-dest a)
     rest (do
            (pr-lex (arg-name a) (arg-p-name a))
            (prn (arg-p-name a) " = list(" (arg-p-name a) " :flat)"))
     (err:string "Unknown arg: " a)))
+
+(def emit-simple-local (cs arg val)
+  (compile-expr cs val nil)
+  (prn ".local pmc " (arg-p-name arg))
+  (pr-lex (arg-name arg) (arg-p-name arg))
+  (prn (arg-p-name arg) " = " (c-pop cs)))
+
+; like emit-arg-init, but for 'let like forms
+(def emit-local-init (cs a val has-val)
+  (case (arg-type a)
+    simple (if has-val
+             (emit-simple-local cs a val)
+             (err "Wrong number of arg passed"))
+    opt (if has-val
+          (emit-simple-local cs a val)
+          (emit-simple-local cs a (arg-expr a)))
+    dest (if has-val
+           (do
+             (compile-expr cs val nil)
+             (emit-arg-dest a))
+           (err "Wrong number of arg passed"))
+    rest (if has-val
+           (emit-simple-local cs a (cons 'list val))
+           (emit-simple-local cs a nil))
+    (err "Unknow arg type")))
 
 (def is-opt (x)
   (and (acons x) (is (car x) 'o)))
