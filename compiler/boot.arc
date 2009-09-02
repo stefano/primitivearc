@@ -23,6 +23,7 @@
 
 (def isa (x what) (is (type x) what))
 
+(def caar (x) (car (car x)))
 (def cadr (x) (car (cdr x)))
 (def cddr (x) (cdr (cdr x)))
 
