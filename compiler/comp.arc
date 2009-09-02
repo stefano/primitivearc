@@ -314,7 +314,7 @@
 (def arg-names (args)
   ; consider destructuring too
   ; don't count optionals (o ...) 'o symbol and init expression
-  (if (isa args 'sym)
+  (if (and args (isa args 'sym))
     (list args)
     (flat (map [if (is-opt _) (cadr _) _] (makeproper args)))))
 
@@ -418,7 +418,7 @@
   (mk-arg name p-name expr 'dest))
 
 (def assign-str (pos gs)
-  (string pos "(" gs ")"))
+  (string "'" pos "'(" gs ")"))
 
 (def des-arg (a gs pos)
   (if 
@@ -496,6 +496,8 @@
     dest (if has-val
            (do
              (compile-expr cs val nil)
+             (prn ".local pmc " (arg-p-name a))
+             (prn (arg-p-name a) " = " (c-pop cs))
              (emit-arg-dest a))
            (err "Wrong number of arg passed"))
     rest (if has-val
