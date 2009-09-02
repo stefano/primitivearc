@@ -19,7 +19,7 @@
 
 ; hold compiler state
 
-(def empty-state () (listtab '((reg 0) (lex nil))))
+(def empty-state () (listtab '((reg 0) (loc nil) (lex nil))))
 
 ; register management
 
@@ -39,6 +39,15 @@
 
 (def top (cs)
   cs!reg)
+
+(def find-loc-aux (s args)
+  (if args
+    (if (is (arg-name (car args)) s)
+      (car args)
+      (find-loc-aux s (cdr args)))))
+
+(def find-loc (cs s)
+  (find-loc-aux s cs!loc))
 
 (def alex (cs s)
   (mem s cs!lex))
@@ -111,9 +120,13 @@
              (pr out-reg " = \"")
              (pr-escape (string e))
              (prn  "\""))
-      sym (if (alex cs e)
-            (prn out-reg " = find_lex '" e "'")
-            (prn out-reg " = arc_get_global '" e "'"))
+      sym (let loc (find-loc cs e)
+            (if
+              loc
+                (prn out-reg " = " (arg-p-name loc))
+              (alex cs e)
+                (prn out-reg " = find_lex '" e "'")
+              (prn out-reg " = arc_get_global '" e "'")))
       cons (compile-special-or-call cs e out-reg is-tail))))
 
 (def compile-special-or-call (cs e out-reg is-tail)
@@ -140,10 +153,13 @@
               (emit-local-init cs (car args) (car vals) vals)
               (self (cdr args) (cdr vals))))))
      args vals)
-    (let old cs!lex
+    (with (old-lex cs!lex
+           old-loc cs!loc)
       (= cs!lex (join (arg-names ((car e) 1)) cs!lex))
+      (= cs!loc (join args cs!loc))
       (compile-seq cs body is-tail)
-      (= cs!lex old))
+      (= cs!loc old-loc)
+      (= cs!lex old-lex))
     (prn out-reg " = " (c-pop cs))))
 
 (def compile-call (cs e out-reg is-tail is-apply)
@@ -235,10 +251,13 @@
     (emit-args args)
     ; emit the body
     (reset-reg cs)
-    (let old cs!lex
+    (with (old-lex cs!lex
+           old-loc cs!loc)
       (= cs!lex f!lex)
+      (= cs!loc args)
       (compile-seq cs body t)
-      (= cs!lex old))
+      (= cs!loc old-loc)
+      (= cs!lex old-lex))
     (prn ".return (" (c-pop cs) ")")
     (prn ".end")))
 
@@ -291,9 +310,13 @@
       (err "wrong 'assign form: " expr))
     (compile-expr cs val nil)
     (prn out-reg " = " (c-pop cs))
-    (if (alex cs name)
-      (prn "store_lex '" name "', " out-reg)
-      (prn "set_hll_global '" name "', " out-reg))))
+    (let loc (find-loc cs name)
+      (if
+        loc
+          (prn (arg-p-name loc) " = " out-reg)
+        (alex cs name)
+          (prn "store_lex '" name "', " out-reg)
+        (prn "set_hll_global '" name "', " out-reg)))))
 
 (def aquote (e)
   (and (acons e) (is (car e) 'quote)))
