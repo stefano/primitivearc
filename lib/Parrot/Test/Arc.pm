@@ -62,7 +62,7 @@ sub get_test_prog {
 
     return
         join( ' ',
-              "LD_LIBRARY_PATH=src/pmc:src/ops primitivearc",
+              "LD_LIBRARY_PATH=src/pmc:src/ops ./primitivearc",
 #							'./test.sh',
 #              'primitivearc.pbc',
               $test_prog_args,

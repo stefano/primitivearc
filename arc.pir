@@ -80,8 +80,17 @@ loop2:
     goto loop2
 error:
     .get_results($P2)
+		pop_eh
 		say $P2
-    goto loop2
+		$P2 = $P2.'backtrace'()
+error_loop:
+		unless $P2 goto loop2
+		$P3 = shift $P2
+		$P3 = $P3['sub']
+		if_null $P3, error_loop
+		$S0 = $P3.'to_string'()
+		say $S0
+		goto error_loop
 the_end:        
 .end
 

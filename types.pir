@@ -17,7 +17,7 @@
 
    ## Annotated
 
-   $P0 = subclass 'Array', 'Tagged'
+   $P0 = subclass 'FixedPMCArray', 'Tagged'
 
 	 ## hash
 	 $P0 = subclass 'Hash', 'ArcHash'

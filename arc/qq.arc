@@ -1,35 +1,45 @@
 ; quasiquoting
 
-(assign splice 
-  (fn (l before)
-    (if (and (no (acons l)) l)
-      l
-      (if (no l)
-        before
-        (if (acons (car l))
-          (if (is (car (car l)) '__to-splice)
-            (let res (list '+ before (splice (cadr (car l)) nil))
-              (list '+ res (cons 'list (splice (cdr l) nil))))
-            (splice (cdr l) (+ before (list (splice (car l) nil)))))
-          (splice (cdr l) (+ before (list (car l)))))))))
+(assign tag-data cadr)
+(assign tag-backquote?
+  (fn (x) (if (acons x) (is (car x) 'quasiquote))))
+(assign tag-comma?
+  (fn (x) (if (acons x) (is (car x) 'unquote))))
+(assign tag-comma-atsign?
+  (fn (x) (if (acons x) (is (car x) 'unquote-splicing))))
 
-(assign eval-qq 
-  (fn (x level)
-    (if (is level 0) x
-        (atom x) (list 'quote x)
-        (and (is level 1) (is (car x) 'unquote))
-          (eval-qq (cadr x) (- level 1))
-        (is (car x) 'unquote)
-          (list 'unquote (eval-qq (cadr x) (- level 1)))
-        (and (is level 1) (is (car x) 'unquote-splicing))
-          (list '__to-splice (eval-qq (cadr x) (- level 1)))
-        (is (car x) 'unquote-splicing)
-          (list 'unquote-splicing (eval-qq (cadr x) (- level 1)))
-        (is (car x) 'quasiquote)
-          (list 'quasiquote (eval-qq (cadr x) (+ level 1)))
-        (cons 'list (map1 [eval-qq _ level] x)))))
+(assign qq-expand 
+  (fn (x)
+   (if 
+     (tag-comma? x)
+       (tag-data x)
+     (tag-comma-atsign? x)
+       (err "Illegal")
+     (tag-backquote? x)
+       (qq-expand
+         (qq-expand (tag-data x)))
+     (acons x)
+       (list '+
+             (qq-expand-list (car x))
+             (qq-expand (cdr x)))
+     (list 'quote x))))
 
-(assign quasiquote 
-  (annotate 'mac 
-    (fn (x)
-      (splice (eval-qq x 1) nil))))
+(assign qq-expand-list 
+  (fn (x)
+    (if
+      (tag-comma? x)
+        (list 'list (tag-data x))
+      (tag-comma-atsign? x)
+        (tag-data x)
+      (tag-backquote? x)
+        (qq-expand-list
+          (qq-expand (tag-data x)))
+      (acons x)
+         (list 'list
+               (list '+
+                 (qq-expand-list (car x))
+                 (qq-expand (cdr x))))
+      (list 'quote (list x)))))
+
+;(assign quasiquote 
+;  (annotate 'mac qq-expand))

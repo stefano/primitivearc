@@ -193,18 +193,15 @@
 
 (def compile-const (cs const)
   (let emit-const (afn (e)
-                    (if 
-                      (aquote e)
-                        (self (cadr e))
-                      (case (e-type e)
-                        sym (prn (c-push cs) " = 'intern'('" e "')")
-                        cons (do
-                               (self (car e))
-                               (self (cdr e))
-                               (with (a (c-pop cs) b (c-pop cs))
-                                 (prn (c-push cs) " = 'cons'(" b "," a ")")))
-                        ; else
-                        (compile-expr cs e nil))))
+                    (case (e-type e)
+                      sym (prn (c-push cs) " = 'intern'('" e "')")
+                      cons (do
+                             (self (car e))
+                             (self (cdr e))
+                             (with (a (c-pop cs) b (c-pop cs))
+                               (prn (c-push cs) " = 'cons'(" b "," a ")")))
+                      ; else
+                      (compile-expr cs e nil)))
     ;(prn ".sub '" const!name "' :subid('" const!name "') :immediate")
     (emit-const const!expr)
     ;(prn ".return (" (c-pop cs) ")")
@@ -370,13 +367,14 @@
     (in (e-type expr) 'sym 't 'nil) 
       (list nil nil expr)
     (or (in (e-type expr) 'int 'num 'char 'string) (aquote expr))
-      (if (consts expr)
-        (list nil nil (consts expr))
-        (let name (uniq)
-          (= (consts expr) name)
-          ;(ero (string "    name: " name " -> " expr))
-          ; TODO: optimize simple constants (int, num, char, string)
-          (list nil (list (mk-const name expr)) name)))
+      (let expr (if (aquote expr) (cadr expr) expr)
+        (if (consts expr)
+          (list nil nil (consts expr))
+          (let name (uniq)
+            (= (consts expr) name)
+            ;(ero (string "    name: " name " -> " expr))
+            ; TODO: optimize simple constants (int, num, char, string)
+            (list nil (list (mk-const name expr)) name))))
     (a-fn-assign expr)
       (let (f c e) (collect-fns-and-consts (caddr expr) lex outer is-main
                                            is-seq consts (cadr expr))
@@ -409,6 +407,7 @@
         (list (apply join res.0) (apply join res.1) res.2)))))
 
 (def mac-ex (e)
+  ; expands quasiquotations too
   (if (atom e) 
     e
     (let op (car e)
@@ -417,6 +416,8 @@
           (cons 'fn (cons (cadr e) (map mac-ex (cddr e))))
         (is op 'quote)
           e
+        (is op 'quasiquote)
+          (qq-expand (cadr e))
         (and (isa op 'sym)
              (bound op)
              (isa (eval op) 'mac))

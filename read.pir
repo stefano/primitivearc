@@ -326,8 +326,16 @@ mk_symbol:
    rs.'get1'() # skip #
    $S0 = rs.'get1'()
    unless $S0 == "\\" goto error
+	 $S0 = rs.'get1'()
+	 $I0 = rs.'is_eof'()
+	 if $I0 goto error
+	 $S1 = rs.'peek1'()
+	 $I0 = index specandsep, $S1
+	 unless $I0 == -1 goto name_read
    $P0 = _read_symbol(rs, 0)
-   $S0 = $P0.'to_string'() # get char name
+   $S1 = $P0.'to_string'() # get char name
+	 $S0 .= $S1
+name_read:			
    $S1 = ct[$S0]
    unless $S1 == "" goto ret_it
    $I0 = length $S0

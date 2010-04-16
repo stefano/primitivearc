@@ -1,0 +1,43 @@
+To build and run primitivearc you need a working copy of Parrot
+and Arc3 (needed only during the installation phase).
+
+First, configure:
+
+  $ perl Configure.pl
+
+Then compile the base system:
+
+  $ make all
+
+Now you need to compile the compiler (WARNING: this step opens an Arc REPL on port 4321):
+
+  $ cd <arc3-directory>
+  $ cp -r <primitivearc-directory>/compiler test_serv.arc .
+  $ ./srv.sh
+  arc> (load "test_serv.arc")
+
+Leave the process running in the background and go back to the
+primitivearc directory:
+
+  $ cd <primitivearc-directory>
+  $ ./bootstrap.sh
+
+If you wish, you can test it:
+
+  $ make test
+
+Now you can kill the Arc3 process running in the background and
+proceed with the last installation step:
+
+  $ make install
+
+Finally you can start the executable. Use the '-e' option to get a prompt
+into the interactive mode:
+
+  $ primitivearc -e
+  arc>
+
+You can also use primitivearc without installing it:
+
+  $ LD_LIBRARY_PATH=src/ops:src/pmc ./primitivearc -e
+  arc>

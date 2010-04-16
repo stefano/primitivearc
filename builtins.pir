@@ -26,11 +26,11 @@ loop:
 
 .sub 'err'
    .param pmc what
-	 $S0 = _str_err(what)
-   $P0 = new 'ArcStr'
-	 $P0 = $S0
+	 #$S0 = _str_err(what)
+   #$P0 = new 'ArcStr'
+	 #$P0 = $S0
 
-   die $P0
+   die what
 #	 .return (what)
 .end
 
@@ -341,18 +341,18 @@ no:
    .local pmc nil
    .local pmc res
    .local pmc last
-
+	 
    nil = get_hll_global 'nil'
    last = nil
-   res = nil
+   res = l
 start:
-   $I0 = issame nil, l
-   if $I0 goto end
+	 $S0 = typeof l
+   unless $S0 == 'cons' goto end
    $P0 = car(l)
    l = cdr(l)
    $I0 = issame last, nil
    if $I0 goto first
-   $P0 = cons($P0, nil)
+   $P0 = cons($P0, l)
    scdr(last, $P0)
    last = $P0
    goto start
@@ -364,7 +364,7 @@ end:
    .return (res, last)
 .end
 
-.sub '+' :multi(ArcNil, Cons)
+.sub '+' :multi(ArcNil, _)
    .param pmc a
    .param pmc b
    
@@ -385,7 +385,7 @@ end:
    .tailcall 'copy'(a)
 .end
 
-.sub '+' :multi(Cons, Cons)
+.sub '+' :multi(Cons, _)
    .param pmc a
    .param pmc b
    .local pmc nil
@@ -430,12 +430,12 @@ end:
 
 	 $P0 = new 'Continuation'
 	 set_addr $P0, continue
-   $P0 = f($P0)
+   .tailcall f($P0)
 continue:
-#	 .local pmc res
-#   .get_results (res)
-#	 .return (res)
-	 .return ($P0)
+	 .local pmc res
+   .get_results (res)
+	 '+'(0, 0) # Ugh! without calling a useless function here it doesn't work...
+	 .return (res)
 .end
 
 .sub 'pr'
@@ -792,6 +792,16 @@ loop:
    goto loop
 end:
    .return ($P2)
+.end
+
+.sub 'load-pir'
+	 .param pmc file
+
+	 $S0 = file
+	 load_bytecode $S0
+
+	 $P0 = get_hll_global 'nil'
+	 .return ($P0)
 .end
 
 .sub 'system'
