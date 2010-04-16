@@ -12,7 +12,7 @@ Then compile the base system:
 Now you need to compile the compiler (WARNING: this step opens an Arc REPL on port 4321):
 
   $ cd <arc3-directory>
-  $ cp -r <primitivearc-directory>/compiler test_serv.arc .
+  $ cp -r <primitivearc-directory>/compiler <primitivearc-directory>/test_serv.arc .
   $ ./srv.sh
   arc> (load "test_serv.arc")
 
