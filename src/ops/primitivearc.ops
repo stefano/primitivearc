@@ -4,7 +4,7 @@
  */
 
 #include "parrot/dynext.h"
-VERSION = PARROT_VERSION;
+/*VERSION = PARROT_VERSION;*/
 
 /* Op to get the address of a PMC. */
 inline op primitivearc_pmc_addr(out INT, invar PMC) :base_core {

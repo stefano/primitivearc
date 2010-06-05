@@ -1,6 +1,7 @@
 pmclass ArcChar
   extends ArcT
   extends String
+  auto_attrs
   dynpmc
   group primitivearc_group
   hll Arc {

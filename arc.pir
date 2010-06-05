@@ -47,7 +47,8 @@ loop:
     unless iter goto end 
     $S0 = shift iter
     if $S0 == '-e' goto eval_mode # enter evaluation mode
-		unless $S0 == '-pir' goto go_on
+    if $S0 == '-a' goto is_arc
+    unless $S0 == '-pir' goto go_on
 		$S0 = shift iter
 		is_pir = 1
 go_on:
@@ -56,6 +57,9 @@ go_on:
 		$P0 = compreg 'PIR'
 		$P0 = $P0($S0)
 		$P0()
+		goto loop
+is_arc:
+		is_pir = 0
 		goto loop
 compile_arc:		
     $P0 = 'load'($S0)#_compile_and_eval($S0)
@@ -88,7 +92,7 @@ error_loop:
 		$P3 = shift $P2
 		$P3 = $P3['sub']
 		if_null $P3, error_loop
-		$S0 = $P3.'to_string'()
+		$S0 = $P3#.'to_string'()
 		say $S0
 		goto error_loop
 the_end:        

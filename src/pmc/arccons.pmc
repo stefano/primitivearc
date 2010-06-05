@@ -13,6 +13,7 @@ static STRING* as_string(PARROT_INTERP, PMC *pmc) {
 */
 pmclass ArcCons
   extends ArcT
+  auto_attrs
   dynpmc
   group primitivearc_group
   hll Arc {

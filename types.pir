@@ -64,7 +64,7 @@
 .namespace ['ArcHash']
 
 .sub 'name' :vtable
-	 .return ("hash")
+	 .return ("table")
 .end
 
 .sub 'get_bool' :vtable :method
@@ -264,8 +264,13 @@ end:
 .sub 'scar'
    .param pmc cell
    .param pmc val
-	 cell.'scar'(val)
+
+   $S0 = typeof cell
+   if $S0 == 'string' goto is_string
+   cell.'scar'(val)
    .return (val)
+is_string:
+   .tailcall 'sref'(cell, val, 0)
 .end
 
 .sub 'cdr'
@@ -354,7 +359,13 @@ end:
 .end
 
 .sub 'table'
-   $P0 = new 'ArcHash'
+	.param pmc fn :optional
+	.param int has_fn :opt_flag
+
+	$P0 = new 'ArcHash'
+	unless has_fn goto end
+	'arcall1'(fn, $P0)
+end:	
    .return ($P0)
 .end
 
@@ -372,9 +383,20 @@ end:
 	 goto go
 tostring:	
 	 $S0 = key.'to_string'()
-go:			
-   h[$S0] = val
-
+go:
+	 .local pmc nil
+	 nil = get_hll_global 'nil'
+	 $I0 = issame nil, val
+	 if $I0 goto delete_key
+	 $P0 = new 'FixedPMCArray'
+	 $P0 = 2
+	 $P0[0] = key
+	 $P0[1] = val
+	 h[$S0] = $P0
+	 goto end
+delete_key:
+	 delete h[$S0]
+end:	
    .return (val)
 .end
 
@@ -440,14 +462,18 @@ type_err:
    .param pmc what
    $S0 = typeof what
    if $S0 == 'Tagged' goto tagged
-	 if $S0 == 'Sub' goto fn
-	 if $S0 == 'MultiSub' goto fn
+   if $S0 == 'Sub' goto fn
+   if $S0 == 'MultiSub' goto fn
+   if $S0 == 't' goto nil_t
+   if $S0 == 'nil' goto nil_t
    .tailcall 'intern'($S0)
 tagged:
    $P0 = what[0]
 	 .return ($P0)
 fn:
 	 .tailcall 'intern'("fn")
+nil_t:
+	 .tailcall 'intern'("sym")
 .end
 
 ## coercion

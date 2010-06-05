@@ -40,14 +40,17 @@
 (def top (cs)
   cs!reg)
 
-(def find-loc-aux (s args)
+(def find-loc-aux (s args depth)
   (if args
     (if (is (arg-name (car args)) s)
       (car args)
-      (find-loc-aux s (cdr args)))))
+      (if (and (is depth 0) (is (arg-type (car args)) 'dest))
+        (or (find-loc-aux s (arg-expr (car args)) 1)
+            (find-loc-aux s (cdr args) 0))
+        (find-loc-aux s (cdr args) depth)))))
 
 (def find-loc (cs s)
-  (find-loc-aux s cs!loc))
+  (find-loc-aux s cs!loc 0))
 
 (def alex (cs s)
   (mem s cs!lex))
@@ -147,16 +150,18 @@
          vals (cdr e))
     ((afn (args vals)
         (if args
-          (if (is (arg-type (car args)) 'rest)
-            (emit-local-init cs (car args) vals vals)
-            (do
-              (emit-local-init cs (car args) (car vals) vals)
-              (self (cdr args) (cdr vals))))))
+          (do
+            (= cs!loc (cons (car args) cs!loc))
+            (if (is (arg-type (car args)) 'rest)
+              (emit-local-init cs (car args) vals vals)
+              (do
+                (emit-local-init cs (car args) (car vals) vals)
+                (self (cdr args) (cdr vals)))))))
      args vals)
     (with (old-lex cs!lex
            old-loc cs!loc)
-      (= cs!lex (join (arg-names ((car e) 1)) cs!lex))
-      (= cs!loc (join args cs!loc))
+      ;(= cs!lex (join (arg-names ((car e) 1)) cs!lex))
+      ;(= cs!loc (join args cs!loc))
       (compile-seq cs body is-tail)
       (= cs!loc old-loc)
       (= cs!lex old-lex))
@@ -245,13 +250,14 @@
     (unless (isa name 'sym)
       (err:string "not a symbol: " name))
     (emit-fn-head cs name f!dbg-name f!outer)
-    (emit-args args)
-    ; emit the body
-    (reset-reg cs)
     (with (old-lex cs!lex
            old-loc cs!loc)
       (= cs!lex f!lex)
       (= cs!loc args)
+      ; emit args declaration & initialization
+      (emit-args cs args)
+      ; emit the body
+      (reset-reg cs)
       (compile-seq cs body t)
       (= cs!loc old-loc)
       (= cs!lex old-lex))
@@ -355,11 +361,37 @@
     (aquote e) e
     (a-fn e)
       (withs (args (arg-names (cadr e))
-              new-args (map [uniq] args)
-              transf (join (map cons args new-args) transf))
-        (map [a-conv _ transf] e))
+              ;new-args (map [uniq] args)
+              ;new-transf (join (map cons args new-args) transf)
+              (a-converted-args new-transf) (a-conv-args (cadr e) nil transf));args new-args transf))
+        (cons 'fn (cons a-converted-args (map [a-conv _ new-transf] (cddr e)))))
     ; else
     (map1-imp [a-conv _ transf] e)))
+
+(def a-conv-args (args new-args transf)
+  (if (no args) (list (rev new-args) transf)
+      (acons args) (withs (names (arg-names (list (car args)))
+                           new-transf (join (map [cons _ (uniq)] names) transf)
+                           converted-arg (if (is-opt (car args)) ; don't convert first o in case (o o ...)
+                                           (cons 'o (a-conv (cdr (car args)) new-transf))
+                                           (a-conv (car args) new-transf)))
+                     (a-conv-args (cdr args) (cons converted-arg new-args) new-transf))
+      ; rest arg
+      (let new-transf (cons (cons args (uniq)) transf)
+        (list (join (rev new-args) (a-conv args new-transf)) new-transf))))
+
+; TODO: doesn't work with destructoring: args may have less elements than
+; arg-names, e.g.: ((x y)) vs. (x y)
+; treat optional arg (o ...) to avoid converting all o in (o o ...)
+; add a new conversion to transf incrementally for each arg
+(def a-conv-args-2 (args arg-names new-args transf)
+  (let new-transf (cons (cons (car arg-names) (car new-args)) transf)
+    (if (acons args)
+      (cons (if (is-opt (car args))
+              (cons 'o (a-conv (cdr (car args)) new-transf))
+              (a-conv (car args) new-transf))
+            (a-conv-args (cdr args) (cdr arg-names) (cdr new-args) new-transf))
+      (a-conv args new-transf))))
 
 (def collect-fns-and-consts (expr lex outer is-main is-seq consts (o have-name nil))
 ;  (ero (string "collect: " expr))
@@ -387,7 +419,7 @@
         (let (fns consts expr) (collect-fns-and-consts body new-lex 
                                                        name nil t consts)
           (list (cons (mk-fn (cons '$fn (cons name (cons args expr)))
-                              outer new-lex have-name)
+                              outer lex have-name) ; pass old-lex, args taken from cs!loc
                       fns)
                 consts (list (if is-main '$function '$closure) name))))
     (and (no is-seq) (a-let expr))
@@ -416,8 +448,8 @@
           (cons 'fn (cons (cadr e) (map mac-ex (cddr e))))
         (is op 'quote)
           e
-        (is op 'quasiquote)
-          (qq-expand (cadr e))
+        ;(is op 'quasiquote)
+        ;  (qq-expand (cadr e))
         (and (isa op 'sym)
              (bound op)
              (isa (eval op) 'mac))
@@ -486,11 +518,10 @@
     (prn (arg-p-name loc) " = " (arg-expr loc))))
 
 ; emit initialization code for arg
-(def emit-arg-init (a)
+(def emit-arg-init (cs a)
   (case (arg-type a)
     simple (pr-lex (arg-name a) (arg-p-name a))
-    opt (with (next (label)
-               cs (empty-state))
+    opt (let next (label)
           (pr-lex (arg-name a) (arg-p-name a))
           (prn "if has_" (arg-p-name a) " goto " next)
           (compile-expr cs (arg-expr a) nil)
@@ -551,8 +582,12 @@
               (collect-args (cdr args))))
     (err:string "Unknow arg type:" args)))
 
-(def emit-args (args)
+(def emit-args (cs args)
   (each arg args
     (emit-arg-dec arg))
-  (each arg args
-    (emit-arg-init arg)))
+  (let old-loc cs!loc
+    (= cs!loc nil)
+    (each arg args
+      (= cs!loc (cons arg cs!loc))
+      (emit-arg-init cs arg))
+    (= cs!loc old-loc)))

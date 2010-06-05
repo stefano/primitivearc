@@ -120,6 +120,7 @@ tostring:
 go:			
    $P0 = table[$S0]
    if_null $P0, ret_nil # not found
+   $P0 = $P0[1] # 0 -> key, 1 -> val
    .return ($P0)
 ret_nil:	
    $P0 = get_hll_global 'nil'

@@ -41,5 +41,5 @@
                  (qq-expand (cdr x))))
       (list 'quote (list x)))))
 
-;(assign quasiquote 
-;  (annotate 'mac qq-expand))
+(assign quasiquote
+  (annotate 'mac qq-expand))

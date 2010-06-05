@@ -39,9 +39,9 @@ loop:
 	 .param pmc after
 
 	 push_eh error
-	 $P0 = 'arcall'(during)
+	 'arcall'(during)
 	 pop_eh
-	 .return ($P0)
+	 .tailcall 'arcall'(after)
 error:
 	 .local pmc ex
 	 .get_results(ex)
@@ -94,7 +94,7 @@ end:
 
 ## arithmethic
 
-.macro defmathop(name, op)
+.macro defmathop(name, op, base_value)
 
    ## default sub called if the others fail to match
    .sub .name :multi()
@@ -111,7 +111,7 @@ loop:
 end:
       .return ($P0)
 zero_args:
-      .return (0)
+      .return (.base_value)
    .end
 
    .sub .name :multi(ArcInt, ArcInt)
@@ -156,10 +156,10 @@ zero_args:
 
 .endm
 
-.defmathop('+', +)
-.defmathop('-', -)
-.defmathop('*', *)
-.defmathop('/', /)
+.defmathop('+', +, 0)
+.defmathop('-', -, 0)
+.defmathop('*', *, 1)
+.defmathop('/', /, 1)
 
 .sub 'mod'
    .param int a
@@ -313,6 +313,16 @@ no:
    .defcmp(.name, .op, ArcInt, ArcNum, num)
    .defcmp(.name, .op, ArcNum, ArcInt, num)
    .defcmp(.name, .op, ArcNum, ArcNum, num)
+
+   .sub .name :multi(ArcSym, ArcSym)
+	   .param pmc a1
+	   .param pmc a2
+
+	   $P0 = 'string'(a1)
+	   $P1 = 'string'(a2)
+
+	   .tailcall .name($P0, $P1)
+   .end
    
    .sub .name :multi(_, _)
       .param pmc a1
@@ -395,18 +405,26 @@ end:
    scdr($P1, $P2)
    .return ($P0)
 .end
-   
-.sub '+' :multi(ArcStr, ArcStr)
+
+.sub '+' :multi(ArcStr, ArcNil)
    .param pmc s1
    .param pmc s2
 
-   $S0 = s1
-   $S1 = s2
-   $S0 .= $S1
+   .return (s1)
+.end
 
-   $P0 = new 'ArcStr'
-   $P0 = $S0
-   .return ($P0)
+.sub '+' :multi(ArcStr, _)
+   .param pmc s1
+   .param pmc s2
+
+   .tailcall 'string'(s1, s2)
+#   $S0 = s1
+ #  $S1 = s2
+  # $S0 .= $S1
+
+   #$P0 = new 'ArcStr'
+   #$P0 = $S0
+   #.return ($P0)
 .end
 
 .sub 'rand'
@@ -504,7 +522,7 @@ end:
    $P0(what)
 	 set_hll_global 'stdout*', $P1
    $P1 = compreg 'PIR'
-	 $P0 = 'inside'(out)
+   $P0 = 'inside'(out)
 	 if_null send_pir_to_stdout, execute
 	 'prn'($P0)
 execute:				
@@ -689,6 +707,7 @@ do:
 	 $P0 = new 'ArcChar'
 	 $S0 = inport.'get1'()
 	 $P0 = $S0
+	 $P0 = 'char->int'($P0)
 	 .return ($P0)
 .end
 
@@ -707,6 +726,7 @@ do:
 .sub 'read'
    .param pmc inport :optional
    .param int has_in :opt_flag
+
    if has_in goto do
    inport = get_hll_global 'stdin*'
 do:
@@ -734,7 +754,8 @@ do:
    if has_out goto do
    outport = get_hll_global 'stdout*'
 do:
-   .tailcall 'writec'(c, outport)
+   $P0 = 'int->char'(c)
+   .tailcall 'writec'($P0, outport)
 .end
 
 .sub 'write'
@@ -877,12 +898,14 @@ false:
 
    .local pmc iter
 
-   iter = table
+   iter = new 'HashIterator', table
 loop:
    unless iter goto end
    $P0 = shift iter
-   $P1 = table[$P0]
-	 arcall2(fn, $P0, $P1)
+   $P0 = table[$P0]
+   $P1 = $P0[1]
+   $P2 = $P0[0]
+   arcall2(fn, $P2, $P1)
    goto loop
 end:
    .return (table)
@@ -940,26 +963,6 @@ false:
    .return ($P0)
 .end
 
-.sub 'newstring'
-   .param int n
-   .param string c :optional
-   .param int has_c :opt_flag
-
-   if has_c goto go_on
-   c = " "
-go_on:  
-   $S0 = ""
-loop:
-   if n >= 0 goto end
-   $S0 .= c
-   n = n - 1
-   goto loop
-end:
-   $P0 = new 'ArcStr'
-   $P0 = $S0
-   .return ($P0)
-.end
-
 .sub 'string'
 	 .param pmc args :slurpy
 
@@ -994,6 +997,24 @@ handle_err:
 	 .param pmc ex
 	 $S0 = ex.'to_string'()
 	 .return ($S0)
+.end
+
+.sub 'timedate'
+	.param pmc secs
+	$I0 = secs
+	$P0 = decodetime $I0
+	$I2 = $P0 # get length
+	$I2 = $I2 - 1
+	$P1 = get_hll_global 'nil'
+loop:
+	if $I2 == -1 goto end
+	$I3 = $P0[$I2]
+	$P2 = new 'ArcInt', $I3
+	$P1 = 'cons'($P2, $P1)
+	$I2 = $I2 - 1
+	goto loop
+end:	
+	.return ($P1)
 .end
 
 ## only stubs

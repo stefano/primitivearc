@@ -35,7 +35,7 @@ language_output_is('Arc', << 'CODE', << 'RES', 'infile & readb');
 (write c1)
 c2
 CODE
-#\O#\K
+7975
 RES
 
 language_output_is('Arc', << 'CODE', << 'RES', 'infile & peekc');

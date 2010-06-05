@@ -2,6 +2,7 @@ pmclass ArcInt
   extends ArcT
   extends Integer
   dynpmc
+  auto_attrs
   group primitivearc_group
   hll Arc
   maps Integer {

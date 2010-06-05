@@ -53,13 +53,13 @@ generate: $(OPS_FILE)
 
 compile: generate
 	$(CC) $(CC_OUT)primitivearc_ops$(O) $(INCLUDES) $(CFLAGS) primitivearc_ops.c
-	$(CC) $(CC_OUT)primitivearc_ops_switch$(O) $(INCLUDES) $(CFLAGS) primitivearc_ops_switch.c
+#	$(CC) $(CC_OUT)primitivearc_ops_switch$(O) $(INCLUDES) $(CFLAGS) primitivearc_ops_switch.c
 #IF(cg_flag):	$(CC) $(CC_OUT)primitivearc_ops_cg$(O) $(INCLUDES) $(CFLAGS) primitivearc_ops_cg.c
 #IF(cg_flag):	$(CC) $(CC_OUT)primitivearc_ops_cgp$(O) $(INCLUDES) $(CFLAGS) primitivearc_ops_cgp.c
 
 linklibs: compile
 	$(LD) $(LD_OUT)primitivearc_ops$(LOAD_EXT) primitivearc_ops$(O) $(LINKARGS)
-	$(LD) $(LD_OUT)primitivearc_ops_switch$(LOAD_EXT) primitivearc_ops_switch$(O) $(LINKARGS)
+#	$(LD) $(LD_OUT)primitivearc_ops_switch$(LOAD_EXT) primitivearc_ops_switch$(O) $(LINKARGS)
 #IF(cg_flag):	$(LD) $(LD_OUT)primitivearc_ops_cg$(LOAD_EXT) primitivearc_ops_cg$(O) $(LINKARGS)
 #IF(cg_flag):	$(LD) $(LD_OUT)primitivearc_ops_cgp$(LOAD_EXT) primitivearc_ops_cgp$(O) $(LINKARGS)
 

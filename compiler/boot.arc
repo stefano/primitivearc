@@ -73,7 +73,7 @@
     (inside o)])
 
 (dcoerce 'nil 'string (fn (it) ""))
-(dcoerce 'symbol 'string string)
+(dcoerce 'sym 'string string)
 
 (def str>lst (s pos)
   (if (< pos (len s))

@@ -58,8 +58,8 @@ language_output_is('Arc', '(assign h (table)) (sref h 1 1) (sref h 2 1) (sref h 
 
 
 ## type
-language_output_is('Arc', "(type nil)", "nil\n", 'type nil');
-language_output_is('Arc', "(type t)", "t\n", 'type t');
+language_output_is('Arc', "(type nil)", "sym\n", 'type nil');
+language_output_is('Arc', "(type t)", "sym\n", 'type t');
 language_output_is('Arc', "(type (cons 1 2))", "cons\n", 'type cons');
 language_output_is('Arc', "(type 'k)", "sym\n", 'type sym');
 language_output_is('Arc', '(type "12")', "string\n", 'type string');

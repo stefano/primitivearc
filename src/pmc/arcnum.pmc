@@ -1,6 +1,7 @@
 pmclass ArcNum 
   extends ArcT
   extends Float
+  auto_attrs
   dynpmc
   group primitivearc_group
   hll Arc

@@ -1,6 +1,7 @@
 pmclass ArcFn
   extends ArcT
   extends Sub
+  auto_attrs
   dynpmc
   group primitivearc_group
   hll Arc 

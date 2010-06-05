@@ -1,5 +1,6 @@
 pmclass ArcSym
   extends ArcT
+  auto_attrs
   need_ext
   dynpmc
   group primitivearc_group

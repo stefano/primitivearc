@@ -202,7 +202,7 @@ end:
 .sub '_skip_separators'
    .param pmc rs
 
-loop:	
+loop:
    $S0 = rs.'peek1'()
    $I0 = index separators, $S0
    if $I0 == -1 goto end
