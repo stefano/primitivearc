@@ -1,0 +1,5 @@
+- macex fully expands its argument
+- no rat numbers
+- (+ '(1 2) 4) -> (1 2 . 4) instead of error
+- division by zero not allowed with float values
+- no optional args within a destructuring arg
